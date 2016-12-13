@@ -1,5 +1,16 @@
 import pygame
+pygame.init()
 
+cores = {
+    '0': (255,0,0),
+    '1': (255,100,0),
+    '2': (255,0,100),
+    '3': (0,0,255),
+    '4': (100,0,255),
+    '5': (0,100,255),
+    '8': (200,200,200),
+    '9': (20,20,20),
+}
 
 class Samurai(pygame.sprite.Sprite):
     def __init__(self):
@@ -7,84 +18,50 @@ class Samurai(pygame.sprite.Sprite):
 
     def update(self):
         pass
-    
-#blablabla
 
 class Board(pygame.sprite.Sprite):
-    def __init__(self):
+    def __init__(self, n):
         super(Board, self).__init__()
+        delta_x = 20
+        delta_y = 20
+        self.casas = {
+            (i, j): {
+                "rect": pygame.Rect(30*i + delta_x, 30*j + delta_y, 30, 30),
+                "cor": (255,255,255)
+            } for i in range(n) for j in range(n)
+        }
 
     def update(self):
         pass
 
 
-class Game(object):
-    def __init__(self, size, dimension):
-        super(Game, self).__init__()
-        self._setup()
-        self.size = size
-        self.dimension = dimension
-        # instancia uma tela
-        self.screen = pygame.display.set_mode(size)
-        self.screen.fill((255,255,255))
-        for x in range(0, self.size[0], self.size[0]/self.dimension):
-            for y in range(0, self.size[1], self.size[1]/self.dimension):
-                pygame.draw.rect(self.screen, (0,0,0) , (x,y,self.size[0]/self.dimension,self.size[1]/self.dimension), 2)
-        pygame.display.update()
+class Cliente:
+    def __init__(self):
+        super(Cliente, self).__init__()
+        
+        t = Board(15)
+        screen = pygame.display.set_mode((800,600))
+        screen.fill((255,255,255))
 
-        # [coluna, linha]
-        self.quadrado_atual = [0, 0]
-
-
-    def _setup(self):
-        pygame.init()
+        tabuleiro = self.request_turn()
+        for i in range(len(tabuleiro)):
+            tabuleiro[i] = tabuleiro[i].split()
+            for j in range(len(tabuleiro[i])):
+                t.casas[(i,j)]['cor'] = cores[tabuleiro[i][j]]
 
     def run(self):
         while True:
+            for casa in t.casas.values():
+                pygame.draw.rect(screen, casa["cor"], casa["rect"])
+                pygame.draw.rect(screen, (0,0,0), casa["rect"].copy(), 2)
+
             for event in pygame.event.get():
                 if event.type == pygame.QUIT:
                     pygame.quit()
-                    # sys.exit()
 
-                elif event.type == pygame.KEYDOWN:
-                    # pra cima = diminuir linha
-                    if event.key == pygame.K_UP:
-                        pygame.draw.rect(self.screen, (0,0,0) , (self.quadrado_atual[0]*self.size[0]/self.dimension,self.quadrado_atual[1]*self.size[1]/self.dimension,self.size[0]/self.dimension,self.size[1]/self.dimension), 2)
-                        if self.quadrado_atual[1] > 0:
-                            self.quadrado_atual[1] -= 1
-                        pygame.draw.rect(self.screen, (0,0,255) , (self.quadrado_atual[0]*self.size[0]/self.dimension,self.quadrado_atual[1]*self.size[1]/self.dimension,self.size[0]/self.dimension,self.size[1]/self.dimension), 2)
-                        pygame.display.update()
-                        print("subir:", self.quadrado_atual)
-                    # pra baixo = aumentar linha
-                    elif event.key == pygame.K_DOWN:
-                        pygame.draw.rect(self.screen, (0,0,0) , (self.quadrado_atual[0]*self.size[0]/self.dimension,self.quadrado_atual[1]*self.size[1]/self.dimension,self.size[0]/self.dimension,self.size[1]/self.dimension), 2)
-                        if self.quadrado_atual[1] < self.dimension:
-                            self.quadrado_atual[1] += 1
-                        pygame.draw.rect(self.screen, (0,0,255) , (self.quadrado_atual[0]*self.size[0]/self.dimension,self.quadrado_atual[1]*self.size[1]/self.dimension,self.size[0]/self.dimension,self.size[1]/self.dimension), 2)
-                        pygame.display.update()                            
-                        print("descer:", self.quadrado_atual)
-                    # pra esquerda = diminuir coluna
-                    elif event.key == pygame.K_LEFT:
-                        pygame.draw.rect(self.screen, (0,0,0) , (self.quadrado_atual[0]*self.size[0]/self.dimension,self.quadrado_atual[1]*self.size[1]/self.dimension,self.size[0]/self.dimension,self.size[1]/self.dimension), 2)
-                        if self.quadrado_atual[0] > 0:
-                            self.quadrado_atual[0] -= 1
-                        pygame.draw.rect(self.screen, (0,0,255) , (self.quadrado_atual[0]*self.size[0]/self.dimension,self.quadrado_atual[1]*self.size[1]/self.dimension,self.size[0]/self.dimension,self.size[1]/self.dimension), 2)
-                        pygame.display.update()
-                        print("esquerda:", self.quadrado_atual)
-                    # pra direita = aumentar coluna
-                    elif event.key == pygame.K_RIGHT:
-                        pygame.draw.rect(self.screen, (0,0,0) , (self.quadrado_atual[0]*self.size[0]/self.dimension,self.quadrado_atual[1]*self.size[1]/self.dimension,self.size[0]/self.dimension,self.size[1]/self.dimension), 2)
-                        if self.quadrado_atual[0] < self.dimension:
-                            self.quadrado_atual[0] += 1
-                        pygame.draw.rect(self.screen, (0,0,255) , (self.quadrado_atual[0]*self.size[0]/self.dimension,self.quadrado_atual[1]*self.size[1]/self.dimension,self.size[0]/self.dimension,self.size[1]/self.dimension), 2)
-                        pygame.display.update()
-                        print("descer:", self.quadrado_atual)
-                    elif (event.key == pygame.K_RETURN
-                          or event.key == pygame.K_KP_ENTER):
-                        self.quadrado_selecionado = list(self.quadrado_atual)
-                        pygame.draw.rect(self.screen, (255,0,0) , (self.quadrado_selecionado[0]*self.size[0]/self.dimension,self.quadrado_selecionado[1]*self.size[1]/self.dimension,self.size[0]/self.dimension,self.size[1]/self.dimension), 2)
-                        pygame.display.update()
-                        print("quadrado selecionado:", self.quadrado_selecionado)
+            pygame.display.update()
 
-g = Game((526,526), 15)
-g.run()
+    def request_turn(self):
+        texto = open('info.txt').read().split('\\n')
+        tabuleiro = texto[7:]
+        return tabuleiro
