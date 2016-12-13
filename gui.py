@@ -7,7 +7,8 @@ class Samurai(pygame.sprite.Sprite):
 
     def update(self):
         pass
-
+    
+#blablabla
 
 class Board(pygame.sprite.Sprite):
     def __init__(self):
