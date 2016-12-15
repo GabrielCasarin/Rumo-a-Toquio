@@ -3,29 +3,12 @@ import socket
 import pygame
 pygame.init()
 
-cores = {
-    '0': (255,0,0),
-    '1': (255,100,0),
-    '2': (255,0,100),
-    '3': (0,0,255),
-    '4': (100,0,255),
-    '5': (0,100,255),
-    '8': (200,200,200),
-    '9': (20,20,20),
-}
+with open('config.json') as jfile:
+    config = json.load(jfile)
+    cores = config['cores']
+    IMG_NAMES = config['IMG_NAMES']
 
 SCREEN      = pygame.display.set_mode((800,600))
-
-IMG_NAMES   = [
-                "Blue-battleaxehide",      "Blue-swordhide",         "Red-spearhide",
-                "Blue-battleaxehideused",  "Blue-swordhideused",     "Red-spearhideused",
-                "Blue-battleaxe",          "Blue-sword",             "Red-spear",
-                "Blue-battleaxeused",      "Blue-swordused",         "Red-spearused",
-                "Blue-spearhide",          "Red-battleaxehide",      "Red-swordhide",
-                "Blue-spearhideused",      "Red-battleaxehideused",  "Red-swordhideused",
-                "Blue-spear",              "Red-battleaxe",          "Red-sword",
-                "Blue-spearused",          "Red-battleaxeused",      "Red-swordused"
-              ]
 IMAGES      = {
                 name: pygame.image.load("SamurAI-Images/{}.png".format(name)).convert_alpha()
                 for name in IMG_NAMES
@@ -150,7 +133,7 @@ class Cliente:
                 x, y = int(x), int(y)
                 samurai.hidden = int(hidden)
                 if (x,y) != (-1, -1):
-                    samurai.set_center((x,y))
+                    samurai.set_center(self.board.casas[(x,y)]['rect'].center)
                     samurai.draw(self.screen)
                 samurai.treatment = int(treatment)
                 samurai.order_status = int(order_status)
