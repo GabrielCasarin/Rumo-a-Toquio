@@ -1,3 +1,5 @@
+import json
+import socket
 import pygame
 pygame.init()
 
@@ -35,7 +37,6 @@ class Samurai(pygame.sprite.Sprite):
         super(Samurai, self).__init__()
         self.image = IMAGES[img_name]
         self.rect = self.image.get_rect(center=center)
-        print(self.image.get_size())
 
     def update(self):
         pass
@@ -62,21 +63,29 @@ class Board(pygame.sprite.Sprite):
     def draw(self, surface):
         for casa in self.casas.values():
             pygame.draw.rect(surface, casa["cor"], casa["rect"])
-            pygame.draw.rect(surface, (0,0,0), casa["rect"].copy(), 2)
+            pygame.draw.rect(surface, (0,0,0), casa["rect"].copy(), 1)
 
 class Cliente:
     def __init__(self):
+        self.estado = 'inicial'
         
         self.board = Board(15)
 
         self.screen = SCREEN
         self.screen.fill((255,255,255))
 
-        # tabuleiro = self.request_turn()
-        # for i in range(len(tabuleiro)):
-        #     tabuleiro[i] = tabuleiro[i].split()
-        #     for j in range(len(tabuleiro[i])):
-        #         self.board.casas[(i,j)]['cor'] = cores[tabuleiro[i][j]]
+        self.sock = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
+        with open('config.json') as jfile:
+            config = json.load(jfile)
+            self.sock.connect((config["ip"], config["port"]))
+            self.num = int(str(self.sock.recv(1), 'ascii'))
+            print('sou o player', self.num)
+
+        tabuleiro = self.request_turn()
+        for i in range(len(tabuleiro)):
+            tabuleiro[i] = tabuleiro[i].split()
+            for j in range(len(tabuleiro[i])):
+                self.board.casas[(i,j)]['cor'] = cores[tabuleiro[i][j]]
 
         self.samurais = {
                 "blue_1": Samurai("Blue-battleaxe", self.board.casas[(7,14)]["rect"].center),
@@ -87,19 +96,28 @@ class Cliente:
                 "red_3": Samurai("Red-sword", self.board.casas[(0,7)]["rect"].center),
         }
 
-    def run(self):
         self.board.draw(self.screen)
         for samurai in self.samurais:
             self.samurais[samurai].draw(self.screen)
-        while True:
+
+
+    def run(self):
+        while self.estado != 'enviar_comandos':
             for event in pygame.event.get():
-                if event.type == pygame.QUIT:
+                if event.type == pygame.MOUSEBUTTONDOWN:
+                    for casa in self.board.casas.values():
+                        if casa['rect'].collidepoint(event.pos):
+                            print(casa['rect'].center)
+                elif event.type == pygame.QUIT:
                     pygame.quit()
+                    self.sock.close()
 
             pygame.display.update()
 
     def request_turn(self):
-        texto = open('info.txt').read().split('\\n')
+        print('Aguardando envio de informações de turno por parte do Game Manager...')
+        texto = str(self.sock.recv(1024), "ascii").split('\n')
+        print('Dados recebidos')
         tabuleiro = texto[7:]
         return tabuleiro
 
