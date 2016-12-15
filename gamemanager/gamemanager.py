@@ -6,6 +6,7 @@
 ##                                                              ##
 ##################################################################
 
+from server import Server
 
 class Game:
     #criar tabuleiro:
@@ -24,8 +25,9 @@ class Game:
         self.tab = tabuleiro
 
         #definindo os Jogadores
-        self.p1 = Jogador(0)
-        self.p2 = Jogador(1)
+        #MUDAR PARA 1 e 2
+        self.p1 = Jogador(1)
+        self.p2 = Jogador(2)
 
         #Definindo as Homes Positions
         homes = []
@@ -43,8 +45,8 @@ class Game:
 
         sT = str(self.turn)
 
-        sS = ''
-        if player <> 1:
+        sS = '' #precisa esconder as infos do jogador inimigo
+        if player != 2:
             for i in range (3):
                 sS += '\n'
                 sS += str(self.p1.samurais[i].x) + ' '#x
@@ -54,6 +56,7 @@ class Game:
                 sS += str(self.p1.samurais[i].treat)#treatmentturns
 
             for i in range (3):
+
                 sS += '\n'
                 sS += str(self.p2.samurais[i].x) + ' '#x
                 sS += str(self.p2.samurais[i].y) + ' '#y
@@ -64,23 +67,24 @@ class Game:
         else:
             
             for i in range (3):
+                sS += '\n'
                 sS += str(self.p2.samurais[i].x) + ' '#x
                 sS += str(self.p2.samurais[i].y) + ' '#y
                 sS += str(self.p2.samurais[i].order) + ' '#orderstatus
                 sS += str(self.p2.samurais[i].hide) + ' '#showingstatus
-                sS += str(self.p2.samurais[i].treat) +'\n'#treatmentturns
+                sS += str(self.p2.samurais[i].treat) #treatmentturns
                 
             for i in range (3):
+                sS += '\n'
                 sS += str(self.p1.samurais[i].x) + ' '#x
                 sS += str(self.p1.samurais[i].y) + ' '#y
                 sS += str(self.p1.samurais[i].order) + ' '#orderstatus
                 sS += str(self.p1.samurais[i].hide) + ' '#showingstatus
-                sS += str(self.p1.samurais[i].treat) +'\n'#treatmentturns
+                sS += str(self.p1.samurais[i].treat) #treatmentturns
 
 
         if player == -1:
-            newTab = self.tab
-
+            newTab = self.tab #nao ta passando por referencia
 
         else:
                 
@@ -90,7 +94,7 @@ class Game:
             for i in range(size):
                 newTab.append(row[:])
 
-            if player == 0:
+            if player == 1:
                 for y1 in range (size):
                     for x1 in range (size):
                         for i in range(len(self.p1.samurais)):
@@ -99,7 +103,7 @@ class Game:
                             if self.distancia(x1,x2,y1,y2)<=5:
                                 newTab[y1][x1] = self.tab[y1][x1]
 
-            if player == 1:
+            if player == 2:
                 for y1 in range (size):
                     for x1 in range (size):
                         for i in range(len(self.p1.samurais)):
@@ -126,21 +130,20 @@ class Game:
                 sM += str(newTab[y][x])
         s = sT + sS + sM
         
-        print(s)
         return(s)
-            
+
     def score(self,player):
 
         size = self.size
 
         count = 0
-        if player == 0:
+        if player == 1:
             for y in range (size):
                 for x in range (size):
                     for i in range(len(self.p1.samurais)):
                         if self.p1.samurais[i].ID == self.tab[y][x]:
                             count += 1
-        elif player == 1:
+        elif player == 2:
             for y in range (size):
                 for x in range (size):
                     for i in range(len(self.p2.samurais)):
@@ -158,32 +161,26 @@ class Game:
 
 class Jogador:
     def __init__(self,player):
-
-        self.p1 = player
         
         samurais = []
-        if player == 0:
+        if player == 1:
             samurais.append(Samurai(0,0,0))
             samurais.append(Samurai(1,0,7))
             samurais.append(Samurai(2,7,0))
-        elif player == 1:
+        elif player == 2:
             samurais.append(Samurai(0,14,14))
             samurais.append(Samurai(1,14,7))
             samurais.append(Samurai(2,7,14))                
         self.samurais = samurais
 
-    def view(self,game):
-        #recebe todos os dados (turno, samurais, tabuleiro visivel)
-        pass
-
-    def order(self, order):
-        #verifica se eh valido
-        #order = order.split(' ')
-        
-        ID = order[0]
-        
-        for i in range(1,len(order)):
-            self.samurais[ID].action(order)
+    def order(self, order,game):
+         #falta verificar os custos
+        order = order.split(' ')
+            
+        ID = int(order[0])
+        while order[1]!='0':
+            self.samurais[ID].action(int(order[1]),game)
+            order.pop(1)
             
 class Samurai:
     def __init__(self,weaponID,x,y):
@@ -205,67 +202,218 @@ class Samurai:
 
         self.mask = mask
 
-    def action(self,acao,game):
+    def action(self,acao, game):
 
-        #validar tretment status e order status
-      
+        if self.treat > 0: #se esta machucado nao joga
+            return False
+        if self.order == 1: #se ja jogou, nao joga
+            return False
+
         if acao == 0:
-            cont = self.stop(self)
+            cont = self.stop()
         elif acao < 5:
-            cont = self.occupy(self,acao,game)
+            cont = self.occupy(acao,game)
         elif acao < 9:
-            cont = self.move(self,acao,game)
+            cont = self.move(acao,game)
         elif acao == 9:
-            cont = self.hide(self,game)
+            cont = self.hide(game)
+
+        return cont
 
 
     def stop(self):
         return False
 
-    def move(self,direcao):
-        if direcao == 5: #south
-            #verificar se possivel
-            self.y += 1
-        elif direcao == 6: #east
-            #verificar se possivel
-            self.x += 1
-        elif direcao == 7: #north
-            #verificar se possivel
-            self.y -= 1
-        elif direcao == 8: #west
-            #verificar se possivel
-            self.x -= 1
+    def move(self, acao, game):
+        if acao == 5: #south
+            x = self.x
+            y = self.y + 1
+        elif acao == 6: #east
+            x = self.x + 1
+            y = self.y
+        elif acao == 7: #north
+            x = self.x
+            y = self.y - 1
+        elif acao == 8: #west
+            x = self.x - 1
+            y = self.y
 
+        '''verifica se o movimento eh valido'''
+        if (x<=0 and x>=14 and y<=0 and y>=14): #fora do tabuleiro
+            return False
+
+        if ([x,y] in game.homes): #home position
+            return False
+
+        if (self.hide==1): #samurai escondido e saindo de area conquistada pelo time 
+            if(game.tabuleiro[y][x] != 0 and game.tabuleiro[y][x] != 1 and game.tabuleiro[y][x] != 3):
+                return False
+
+        if (self.hide == 0): #dois samurais aparecendo na mesma posicao
+            for i in range (3):
+                if (game.p1.samurais[i].hide == 0):
+                    if ([x,y] == [game.p1.samurais[i].x, game.p1.samurais[i].y]):
+                        return False
+                if (game.p2.samurais[i].hide == 0):
+                    if ([x,y] == [game.p2.samurais[i].x, game.p2.samurais[i].y]):
+                        return False
+
+        self.x = x
+        self.y = y
         return True
 
-    def occupy(self,direcao):
+    def occupy(self, acao, game):
+        newMask = []
+        for pos in self.mask:
+            newMask.append([pos[0],pos[1]])
 
-        if direcao == 1: #south
-            #aplicar mascara no tabuleiro
-            pass
-        elif direcao == 2: #east
-            #aplicar mascara no tabuleiro
-            pass
-        elif direcao == 3: #north
-            #aplicar mascara no tabuleiro
-            pass
-        elif direcao == 4: #west
-            #aplicar mascara no tabuleiro
-            pass
+        # if self.hide == 1: #Se esta escondido, nao pode ocupar
+        #     return False
 
-        return True
+        #Rotacoes
+        if acao == 1:
+            pass
+        elif acao == 2:
+            for pos in newMask:
+                pos[0],pos[1]=pos[1],-pos[0]
+        elif acao == 3:
+            for pos in newMask:
+                pos[0],pos[1]=-pos[0],-pos[1]
+        elif acao == 4:
+            for pos in newMask:
+                pos[0],pos[1]=-pos[1],pos[0]
 
-    def hide(self):
-        #verificar se possivel
+        for pos in newMask:
+            pos[0] += self.x
+            pos[1] += self.y
+
+        # if(self.id = 0):
+        #     if acao == 1:
+        #         ocupar = [(self.x, self.y+1), (self.x, self.y+2), (self.x, self.y+3), (self.x, self.y+4)]
+        #     elif acao == 2:
+        #         ocupar = [(self.x+1, self.y), (self.x+2, self.y), (self.x+3, self.y), (self.x+4, self.y)]
+        #     elif acao == 3:
+        #         ocupar = [(self.x, self.y-1), (self.x, self.y-2), (self.x, self.y-3), (self.x, self.y-4)]
+        #     elif acao == 4:
+        #         ocupar = [(self.x-1, self.y), (self.x-2, self.y), (self.x-3, self.y), (self.x-4, self.y)]
+        # elif(self.id = 1):
+        #     if acao == 1:
+        #         ocupar = [(self.x, self.y+1), (self.x, self.y+2), (self.x+1, self.y+1), (self.x+1, self.y), (self.x+2, self.y)]
+        #     elif acao == 2:
+        #         ocupar = [(self.x+1, self.y), (self.x+2, self.y), (self.x+1, self.y+1), (self.x, self.y+1), (self.x, self.y+2)]
+        #     elif acao == 3:
+        #         ocupar = [(self.x, self.y-1), (self.x, self.y-2), (self.x-1, self.y-1), (self.x-1, self.y), (self.x-2, self.y)]
+        #     elif acao == 4:
+        #         ocupar = [(self.x-1, self.y), (self.x-2, self.y), (self.x-1, self.y-1), (self.x, self.y-1), (self.x, self.y-2)]
+        # elif(self.id = 2):
+        #     if acao == 1:
+        #         ocupar = [(self.x-1, self.y-1), (self.x-1, self.y), (self.x-1, self.y+1), (self.x, self.y+1), (self.x+1, self.y-1), (self.x+1, self.y), (self.x+1, self.y+1)]
+        #     elif acao == 2:
+        #         ocupar = [(self.x-1, self.y-1), (self.x, self.y-1), (self.x+1, self.y-1), (self.x+1, self.y), (self.x-1, self.y+1), (self.x, self.y+1), (self.x+1, self.y+1)]
+        #     elif acao == 3:
+        #         ocupar = [(self.x+1, self.y+1), (self.x+1, self.y), (self.x+1, self.y-1), (self.x, self.y-1), (self.x-1, self.y+1), (self.x-1, self.y), (self.x-1, self.y-1)]
+        #     elif acao == 4:
+        #         ocupar = [(self.x+1, self.y+1), (self.x, self.y+1), (self.x-1, self.y+1), (self.x-1, self.y), (self.x+1, self.y-1), (self.x, self.y-1), (self.x-1, self.y-1)]
+        
+
+
+        for i in range (len(newMask)):
+            if (newMask[i][0]>=0 and newMask[i][0]<=14 and newMask[i][1]>=0 and newMask[i][1]<=14): #casa a ser ocupada dentro do tabuleiro
+                if ([newMask[i][0], newMask[i][1]] not in game.homes): #home position
+                    game.tab[newMask[i][1]][newMask[i][0]] = self.ID
+                    '''Se tiver samurai inimigo, manda ele pra home dele e atualiza trear status dele
+                       turno par p1, impar p2 (pra saber se eh aliado ou inimigo'''
+
+        return True    
+
+    def hide(self, game):
+        if (game.tabuleiro[self.y][self.x]<0 and game.tabuleiro[self.y][self.x]>3): #esconder em territorio amigo
+            return False
+
+        if (self.hide == 0): #dois samurais aparecendo na mesma posicao
+            for i in range (3):
+                if (game.p1.samurais[i].hide == 0):
+                    if ([x,y] == [game.p1.samurais[i].x, game.p1.samurais[i].y]):
+                        return False
+                if (p2.game.p2.samurais[i].hide == 0):
+                    if ([x,y] == [game.p2.samurais[i].x, game.p2.samurais[i].y]):
+                        return False
+
         self.hide = 1-self.hide
-
         return True
 
 def main():
+
+
     score1 = 0
     score2 = 0
-    game = Game()
-    
 
-g = Game()
-    
+    server = Server()
+    server.aguardar_jogadores()
+
+    #partida1:
+    game = Game()
+
+    while game.turn < 96:
+        server.send_turn(1,game.view(1))
+        server.send_turn(2,game.view(2))
+
+        turno_player = game.turn%2+1
+        print(turno_player)
+
+        comando = server.recv_comandos(turno_player)
+
+        if turno_player == 1:
+            game.p1.order(comando,game)
+        else:
+            game.p2.order(comando,game)
+
+        game.turn+=1#temporario
+
+    score1 += game.score(1)
+    score2 += game.score(2)
+
+
+    #partida2:
+    game = Game()
+
+    while game.turn < 96:
+        server.send_turn(1,game.view(1))
+        server.send_turn(2,game.view(2))
+
+        turno_player = 2-game.turn%2
+
+        comando = server.recv_comandos(turno_player)
+
+        if turno_player == 1:
+            game.p1.order(comando,game)
+        else:
+            game.p2.order(comando,game)
+            
+        game.turn+=1#temporario
+
+    score1 += game.score(1)
+    score2 += game.score(2)
+
+
+
+    # while i<48:
+    #     arquivo1 = open('comandos.txt', 'r')
+    #     #mapa = open ('mapa.txt', 'w')
+         
+    #     order=arquivo1.readline()
+    #     self.p1.order(order)
+    #     #mapa.write(game.view(0))
+
+    #     arquivo2 = open('comandos2.txt', 'r')
+    #     #mapa = open ('mapa.txt', 'w')
+
+    #     order=arquivo2.readline()
+    #     self.p2.order(order)
+    #     #mapa.write(game.view(1))
+ 
+
+    #     #recebe 1 jogadas - atualizar
+    #     #pontuacao só quando termina o turno
+
+main()

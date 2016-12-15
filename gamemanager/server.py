@@ -13,24 +13,26 @@ class Server:
 
         self.serversocket.listen(2)
 
-    def aguardar_clientes(self):
+    def aguardar_jogadores(self):
         print('servidor iniciado')
         print('aguardando conexoes...')
-        self.sock_player1, _ = self.serversocket.accept()
+        self.sock_player1, addr = self.serversocket.accept()
         print('player 1 conectou-se')
-        print('endereco:', _, '')
+        print('endereco:', addr, '')
         self.sock_player1.send(bytes('1', 'ascii'))
-
-        # self.sock_player2, _ = self.serversocket.accept()
-        # print('player 2 conectou-se')
-        # print('endereco:', _, '')
-        # self.sock_player2.send(bytes('2', 'ascii'))
+        self.sock_player2, addr = self.serversocket.accept()
+        print('player 2 conectou-se')
+        print('endereco:', addr, '')
+        self.sock_player2.send(bytes('2', 'ascii'))
 
     def send_turn(self, player, turn_msg):
         if player == 1:
             self.sock_player1.send(bytes(turn_msg, 'ascii'))
+            print('enviei1\n'+turn_msg)
         elif player == 2:
             self.sock_player2.send(bytes(turn_msg, 'ascii'))
+
+            print('enviei2\n'+turn_msg)
         else:
             print('player', player, 'não existe')
 
