@@ -25,7 +25,6 @@ class Game:
         self.tab = tabuleiro
 
         #definindo os Jogadores
-        #MUDAR PARA 1 e 2
         self.p1 = Jogador(1)
         self.p2 = Jogador(2)
 
@@ -45,89 +44,103 @@ class Game:
 
         sT = str(self.turn)
 
-        sS = '' #precisa esconder as infos do jogador inimigo
+        sS = ''
         if player != 2:
-            for i in range (3):
+            for samurai1 in self.p1.samurais:
                 sS += '\n'
-                sS += str(self.p1.samurais[i].x) + ' '#x
-                sS += str(self.p1.samurais[i].y) + ' '#y
-                sS += str(self.p1.samurais[i].order) + ' '#orderstatus
-                sS += str(self.p1.samurais[i].hide) + ' '#showingstatus
-                sS += str(self.p1.samurais[i].treat)#treatmentturns
-
-            for i in range (3):
-
-                sS += '\n'
-                sS += str(self.p2.samurais[i].x) + ' '#x
-                sS += str(self.p2.samurais[i].y) + ' '#y
-                sS += str(self.p2.samurais[i].order) + ' '#orderstatus
-                sS += str(self.p2.samurais[i].hide) + ' '#showingstatus
-                sS += str(self.p2.samurais[i].treat)#treatmentturns
+                sS += str(samurai1.x) + ' '#x
+                sS += str(samurai1.y) + ' '#y
+                sS += str(samurai1.order) + ' '#orderstatus
+                sS += str(samurai1.hide) + ' '#showingstatus
+                sS += str(samurai1.treat)#treatmentturns
+            for samurai2 in self.p2.samurais:
+                
+                vendo = False
+                for samurai1 in self.p1.samurais:
+                    if self.distancia(samurai1.x,samurai2.x,samurai1.y,samurai2.y)<=5:
+                        vendo = True
+                if vendo:
+                    sS += '\n'
+                    sS += str(samurai2.x) + ' '#x
+                    sS += str(samurai2.y) + ' '#y
+                    sS += str(samurai2.order) + ' '#orderstatus
+                    sS += str(samurai2.hide) + ' '#showingstatus
+                    sS += str(samurai2.treat)#treatmentturns
+                else:
+                    sS += '\n'
+                    sS += "-1 "
+                    sS += "-1 "
+                    sS += str(samurai2.order) + ' '#orderstatus
+                    sS += "-1 "
+                    sS += str(samurai2.treat)#treatmentturns
 
         else:
-            
-            for i in range (3):
+            for samurai2 in self.p2.samurais:
                 sS += '\n'
-                sS += str(self.p2.samurais[i].x) + ' '#x
-                sS += str(self.p2.samurais[i].y) + ' '#y
-                sS += str(self.p2.samurais[i].order) + ' '#orderstatus
-                sS += str(self.p2.samurais[i].hide) + ' '#showingstatus
-                sS += str(self.p2.samurais[i].treat) #treatmentturns
-                
-            for i in range (3):
-                sS += '\n'
-                sS += str(self.p1.samurais[i].x) + ' '#x
-                sS += str(self.p1.samurais[i].y) + ' '#y
-                sS += str(self.p1.samurais[i].order) + ' '#orderstatus
-                sS += str(self.p1.samurais[i].hide) + ' '#showingstatus
-                sS += str(self.p1.samurais[i].treat) #treatmentturns
+                sS += str(samurai2.x) + ' '#x
+                sS += str(samurai2.y) + ' '#y
+                sS += str(samurai2.order) + ' '#orderstatus
+                sS += str(samurai2.hide) + ' '#showingstatus
+                sS += str(samurai2.treat) #treatmentturns             
+            for samurai1 in self.p1.samurais:
+                vendo = False
+                for samurai2 in self.p2.samurais:
+                    if self.distancia(samurai1.x,samurai2.x,samurai1.y,samurai2.y)<=5:
+                        vendo = True
+                if vendo:
+                    sS += '\n'
+                    sS += str(samurai1.x) + ' '#x
+                    sS += str(samurai1.y) + ' '#y
+                    sS += str(samurai1.order) + ' '#orderstatus
+                    sS += str(samurai1.hide) + ' '#showingstatus
+                    sS += str(samurai1.treat)#treatmentturns
+                else:
+                    sS += '\n'
+                    sS += "-1 "
+                    sS += "-1 "
+                    sS += str(samurai1.order) + ' '#orderstatus
+                    sS += "-1 "
+                    sS += str(samurai1.treat)#treatmentturns
 
+        size = self.size
+        row = size*[9]
+        newTab = []
+        for i in range(size):
+            newTab.append(row[:])
 
-        if player == -1:
-            newTab = self.tab #nao ta passando por referencia
+        if player == 1:
+            for y1 in range (size):
+                for x1 in range (size):
+                    for i in range(len(self.p1.samurais)):
+                        x2 = self.p1.samurais[i].x
+                        y2 = self.p1.samurais[i].y
+                        if self.distancia(x1,x2,y1,y2)<=5:
+                            newTab[y1][x1] = self.tab[y1][x1]
 
-        else:
-                
-            size = self.size
-            row = size*[9]
-            newTab = []
-            for i in range(size):
-                newTab.append(row[:])
-
-            if player == 1:
-                for y1 in range (size):
-                    for x1 in range (size):
-                        for i in range(len(self.p1.samurais)):
-                            x2 = self.p1.samurais[i].x
-                            y2 = self.p1.samurais[i].y
-                            if self.distancia(x1,x2,y1,y2)<=5:
+        if player == 2:
+            for y1 in range (size):
+                for x1 in range (size):
+                    for i in range(len(self.p1.samurais)):
+                        x2 = self.p2.samurais[i].x
+                        y2 = self.p2.samurais[i].y
+                        if self.distancia(x1,x2,y1,y2)<=5:
+                            #Invertendo os samurais para o player2 (0>3,1>4,2>5,3>0,4>1,5>2)
+    
+                            if self.tab[y1][x1] < 3: #0>3,1>4,2>5
+                                newTab[y1][x1] = self.tab[y1][x1]+3
+                            elif self.tab[y1][x1] < 6: #3>0,4>1,5>2
+                                newTab[y1][x1] = self.tab[y1][x1]-3
+                            else:
                                 newTab[y1][x1] = self.tab[y1][x1]
 
-            if player == 2:
-                for y1 in range (size):
-                    for x1 in range (size):
-                        for i in range(len(self.p1.samurais)):
-                            x2 = self.p2.samurais[i].x
-                            y2 = self.p2.samurais[i].y
-                            if self.distancia(x1,x2,y1,y2)<=5:
-                                #Invertendo os samurais para o player2 (0>3,1>4,2>5,3>0,4>1,5>2)
-        
-                                if self.tab[y1][x1] < 3: #0>3,1>4,2>5
-                                    newTab[y1][x1] = self.tab[y1][x1]+3
-                                elif self.tab[y1][x1] < 6: #3>0,4>1,5>2
-                                    newTab[y1][x1] = self.tab[y1][x1]-3
-                                else:
-                                    newTab[y1][x1] = self.tab[y1][x1]
-
                                     
-            #transformar newTab em str
-            #print(newTab)
-            sM =''
-            for y in range(len(newTab)):
-                sM += '\n'
-                for x in range(len(newTab)-1):
-                    sM += str(newTab[y][x]) + ' '
-                sM += str(newTab[y][x])
+        sM =''
+        for y in range(len(newTab)):
+            sM += '\n'
+            for x in range(len(newTab)-1):
+                sM += str(newTab[y][x]) + ' '
+            sM += str(newTab[y][x])
+
         s = sT + sS + sM
         
         return(s)
@@ -152,11 +165,9 @@ class Game:
         return count
                        
  
-
     def distancia(self,x1,x2,y1,y2):
         d = abs(x1-x2)+abs(y1-y2)
         return d
-               
 
 
 class Jogador:
@@ -174,14 +185,27 @@ class Jogador:
         self.samurais = samurais
 
     def order(self, order,game):
-         #falta verificar os custos
+        game.turn += 1
+        budget = 7
+        cont = True
+
         order = order.split(' ')
-            
-        ID = int(order[0])
-        while order[1]!='0':
-            self.samurais[ID].action(int(order[1]),game)
-            order.pop(1)
-            
+
+        if order[0] in [1,2,3]
+            ID = int(order.pop(0))
+        else: 
+            print('Id do samurai invalido, perdeu a vez')
+            return
+
+        while order and cont:
+            acao = order.pop(0)
+            if acao in [0,1,2,3,4,5,6,7,8,9]:
+                cont, custo = self.action(game,acao,budget)
+                budget -= custo
+            else: 
+                cont = False
+                print('Order invalida')
+
 class Samurai:
     def __init__(self,weaponID,x,y):
         self.ID = weaponID      
@@ -202,27 +226,33 @@ class Samurai:
 
         self.mask = mask
 
-    def action(self,acao, game):
+    def action(self,game,acao,budget):
 
         if self.treat > 0: #se esta machucado nao joga
+            print('Samurai machucado não joga')
             return False
         if self.order == 1: #se ja jogou, nao joga
+            print('Samurai já jogou nesse período')
             return False
 
+        cont = False
+        custo = 0
+
         if acao == 0:
-            cont = self.stop()
+            pass
         elif acao < 5:
-            cont = self.occupy(acao,game)
+            if budget >= 4:
+                cont = self.occupy(acao,game)
+                custo = 4
         elif acao < 9:
-            cont = self.move(acao,game)
+            if budget >= 2:
+                cont = self.move(acao,game)
+                custo = 2
         elif acao == 9:
-            cont = self.hide(game)
-
-        return cont
-
-
-    def stop(self):
-        return False
+            if budget >= 1:
+                cont = self.hide(game)
+                custo = 1
+        return cont, custo
 
     def move(self, acao, game):
         if acao == 5: #south
@@ -239,10 +269,14 @@ class Samurai:
             y = self.y
 
         '''verifica se o movimento eh valido'''
-        if (x<=0 and x>=14 and y<=0 and y>=14): #fora do tabuleiro
+        
+        size = game.size
+        if (x < 0 or x >= size or y < 0 or y >= size): #fora do tabuleiro
+            print('Samurai não pode sair tabuleiro')
             return False
 
         if ([x,y] in game.homes): #home position
+            print('Samurai não pode entrar em home positions')
             return False
 
         if (self.hide==1): #samurai escondido e saindo de area conquistada pelo time 
@@ -287,35 +321,6 @@ class Samurai:
             pos[0] += self.x
             pos[1] += self.y
 
-        # if(self.id = 0):
-        #     if acao == 1:
-        #         ocupar = [(self.x, self.y+1), (self.x, self.y+2), (self.x, self.y+3), (self.x, self.y+4)]
-        #     elif acao == 2:
-        #         ocupar = [(self.x+1, self.y), (self.x+2, self.y), (self.x+3, self.y), (self.x+4, self.y)]
-        #     elif acao == 3:
-        #         ocupar = [(self.x, self.y-1), (self.x, self.y-2), (self.x, self.y-3), (self.x, self.y-4)]
-        #     elif acao == 4:
-        #         ocupar = [(self.x-1, self.y), (self.x-2, self.y), (self.x-3, self.y), (self.x-4, self.y)]
-        # elif(self.id = 1):
-        #     if acao == 1:
-        #         ocupar = [(self.x, self.y+1), (self.x, self.y+2), (self.x+1, self.y+1), (self.x+1, self.y), (self.x+2, self.y)]
-        #     elif acao == 2:
-        #         ocupar = [(self.x+1, self.y), (self.x+2, self.y), (self.x+1, self.y+1), (self.x, self.y+1), (self.x, self.y+2)]
-        #     elif acao == 3:
-        #         ocupar = [(self.x, self.y-1), (self.x, self.y-2), (self.x-1, self.y-1), (self.x-1, self.y), (self.x-2, self.y)]
-        #     elif acao == 4:
-        #         ocupar = [(self.x-1, self.y), (self.x-2, self.y), (self.x-1, self.y-1), (self.x, self.y-1), (self.x, self.y-2)]
-        # elif(self.id = 2):
-        #     if acao == 1:
-        #         ocupar = [(self.x-1, self.y-1), (self.x-1, self.y), (self.x-1, self.y+1), (self.x, self.y+1), (self.x+1, self.y-1), (self.x+1, self.y), (self.x+1, self.y+1)]
-        #     elif acao == 2:
-        #         ocupar = [(self.x-1, self.y-1), (self.x, self.y-1), (self.x+1, self.y-1), (self.x+1, self.y), (self.x-1, self.y+1), (self.x, self.y+1), (self.x+1, self.y+1)]
-        #     elif acao == 3:
-        #         ocupar = [(self.x+1, self.y+1), (self.x+1, self.y), (self.x+1, self.y-1), (self.x, self.y-1), (self.x-1, self.y+1), (self.x-1, self.y), (self.x-1, self.y-1)]
-        #     elif acao == 4:
-        #         ocupar = [(self.x+1, self.y+1), (self.x, self.y+1), (self.x-1, self.y+1), (self.x-1, self.y), (self.x+1, self.y-1), (self.x, self.y-1), (self.x-1, self.y-1)]
-        
-
 
         for i in range (len(newMask)):
             if (newMask[i][0]>=0 and newMask[i][0]<=14 and newMask[i][1]>=0 and newMask[i][1]<=14): #casa a ser ocupada dentro do tabuleiro
@@ -343,7 +348,6 @@ class Samurai:
         return True
 
 def main():
-
 
     score1 = 0
     score2 = 0
@@ -395,25 +399,8 @@ def main():
     score1 += game.score(1)
     score2 += game.score(2)
 
+#main()
 
-
-    # while i<48:
-    #     arquivo1 = open('comandos.txt', 'r')
-    #     #mapa = open ('mapa.txt', 'w')
-         
-    #     order=arquivo1.readline()
-    #     self.p1.order(order)
-    #     #mapa.write(game.view(0))
-
-    #     arquivo2 = open('comandos2.txt', 'r')
-    #     #mapa = open ('mapa.txt', 'w')
-
-    #     order=arquivo2.readline()
-    #     self.p2.order(order)
-    #     #mapa.write(game.view(1))
- 
-
-    #     #recebe 1 jogadas - atualizar
-    #     #pontuacao só quando termina o turno
-
-main()
+g = Game()
+print(g.view(2))
+g.__init__()
