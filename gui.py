@@ -3,17 +3,26 @@ import socket
 import pygame
 pygame.init()
 
-with open('config.json') as jfile:
+with open('config/config.json') as jfile:
     config = json.load(jfile)
     cores = config['cores']
     IMG_NAMES = config['IMG_NAMES']
+    IMG_NAMES_BUTTONS = config['IMG_NAMES_BUTTONS']
 
 SCREEN      = pygame.display.set_mode((800,600))
 IMAGES      = {
-                name: pygame.image.load("SamurAI-Images/{}.png".format(name)).convert_alpha()
+                name: pygame.image.load("images/SamurAI-Images/{}.png".format(name)).convert_alpha()
                 for name in IMG_NAMES
+                }
+IMAGES_BUTTONS  = {
+                name: pygame.image.load("images/buttons-Images/{}.png".format(name)).convert_alpha()
+                for name in IMG_NAMES_BUTTONS
               }
 
+bg = pygame.image.load("images/background.png")
+bgrect = bg.get_rect()
+SCREEN.blit(bg,bgrect)
+pygame.display.update()
 
 class Samurai(pygame.sprite.Sprite):
     def __init__(self, img_name):
@@ -61,22 +70,37 @@ class Cliente:
         self.board = Board(15)
 
         self.screen = SCREEN
-        self.screen.fill((255,255,255))
+        #self.screen.fill((255,255,255))
+
+        cmx = 530#centerMoveX
+        cmy = 80#centerMoveY
+
+        cox = 690#centerOcuppyX 
+        coy = 80#centerOcuppyY
+
+        bSize = 40
+
 
         self.Acoes = {
-            'move_down': {'rect': pygame.Rect(700,90,20,20), 'num':1 },
-            'move_left': {'rect': pygame.Rect(670,60,20,20), 'num':3 },
-            'move_up': {'rect': pygame.Rect(700,30,20,20), 'num':4 },
-            'move_right': {'rect': pygame.Rect(730,60,20,20), 'num':2 },
-            'occupy_down': {'rect': pygame.Rect(550,90,20,20), 'num':5 },
-            'occupy_left': {'rect': pygame.Rect(520,60,20,20), 'num':8 },
-            'occupy_up': {'rect': pygame.Rect(550,30,20,20), 'num':7 },
-            'occupy_right': {'rect': pygame.Rect(580,60,20,20), 'num':6 },
-            'Hide': {'rect': pygame.Rect(550,150,20,20), 'num':9 },
-            'Send': {'rect': pygame.Rect(300,500,20,20), 'num': 0},
-            'Erase': {'rect': pygame.Rect(250,500,20,20), 'num': -1},
 
+            'move_down':    {'rect': pygame.Rect(cmx,       cmy+bSize,  bSize,bSize), 'num':1, 'img':"Down" },
+            'move_right':   {'rect': pygame.Rect(cmx+bSize, cmy,        bSize,bSize), 'num':2, 'img':"Right" },
+            'move_up':      {'rect': pygame.Rect(cmx,       cmy-bSize,  bSize,bSize), 'num':3, 'img':"Up" },
+            'move_left':    {'rect': pygame.Rect(cmx-bSize, cmy,        bSize,bSize), 'num':4, 'img':"Left" },
+
+            'occupy_down':  {'rect': pygame.Rect(cox,       coy+bSize,  bSize,bSize), 'num':5, 'img':"Down" },
+            'occupy_right': {'rect': pygame.Rect(cox+bSize, coy,        bSize,bSize), 'num':6, 'img':"Right" },
+            'occupy_up':    {'rect': pygame.Rect(cox,       coy-bSize,  bSize,bSize), 'num':7, 'img':"Up" },
+            'occupy_left':  {'rect': pygame.Rect(cox-bSize, coy,        bSize,bSize), 'num':8, 'img':"Left" },
+
+            'Hide':         {'rect': pygame.Rect(610,145,   60,bSize), 'num':9},
+
+            'Send':         {'rect': pygame.Rect(300,500,bSize,bSize), 'num':0},
+
+            'Erase':        {'rect': pygame.Rect(250,500,bSize,bSize), 'num':-1}
         }
+
+
         pygame.draw.rect(self.screen,(20,20,20),self.Acoes['move_down']['rect'])
         pygame.draw.rect(self.screen,(20,20,20),self.Acoes['move_left']['rect'])
         pygame.draw.rect(self.screen,(20,20,20),self.Acoes['move_up']['rect'])
@@ -94,7 +118,7 @@ class Cliente:
 
 
         self.sock = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
-        with open('config.json') as jfile:
+        with open('config/config.json') as jfile:
             config = json.load(jfile)
             self.sock.connect((config["ip"], config["port"]))
             self.num = int(str(self.sock.recv(1), 'ascii'))
