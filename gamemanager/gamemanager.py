@@ -41,8 +41,19 @@ class Game:
        
         self.homes = homes
 
-    def update(self):
-        pass
+    def reset_orderStats(self):
+        for samurai1 in self.p1.samurais:
+            samurai1.orderStat = 0
+        for samurai2 in self.p2.samurais:
+            samurai2.orderStat = 0
+
+    def countdown_treat(self):
+        for samurai1 in self.p1.samurais:
+            if samurai1.treat > 0:
+                samurai1.treat -= 1
+        for samurai2 in self.p2.samurais:
+            if samurai2.treat > 0:
+                samurai2.treat -= 1
 
     def view(self,player):
         #recebe todos os dados (turno, samurais, tabuleiro)
@@ -129,7 +140,6 @@ class Game:
                         x2 = self.p2.samurais[i].x
                         y2 = self.p2.samurais[i].y
                         if distancia(x1,x2,y1,y2)<=5:
-
                             #Invertendo os samurais para o player2 (0>3,1>4,2>5,3>0,4>1,5>2)
                             if self.tab[y1][x1] < 3: #0>3,1>4,2>5
                                 newTab[y1][x1] = self.tab[y1][x1]+3
@@ -137,13 +147,13 @@ class Game:
                                 newTab[y1][x1] = self.tab[y1][x1]-3
                             else:
                                 newTab[y1][x1] = self.tab[y1][x1]
-                                    
+
         sM =''
         for y in range(len(newTab)):
             sM += '\n'
             for x in range(len(newTab)-1):
                 sM += str(newTab[y][x]) + ' '
-            sM += str(newTab[y][x])
+            sM += str(newTab[y][len(newTab)-1])
 
         s = sT + sS + sM
         
@@ -312,33 +322,51 @@ class Samurai:
             return False
 
         newMask = []
-        for pos in self.mask:
-            newMask.append([pos[0],pos[1]])
+        for casa in self.mask:
+            newMask.append([casa[0],casa[1]])
 
         #Rotacoes
         if acao == 1:
             pass
         elif acao == 2:
-            for pos in newMask:
-                pos[0],pos[1]=pos[1],-pos[0]
+            for casa in newMask:
+                casa[0],casa[1]=casa[1],-casa[0]
         elif acao == 3:
-            for pos in newMask:
-                pos[0],pos[1]=-pos[0],-pos[1]
+            for casa in newMask:
+                casa[0],casa[1]=-casa[0],-casa[1]
         elif acao == 4:
-            for pos in newMask:
-                pos[0],pos[1]=-pos[1],pos[0]
+            for casa in newMask:
+                casa[0],casa[1]=-casa[1],casa[0]
 
-        for pos in newMask:
-            pos[0] += self.x
-            pos[1] += self.y
+        for casa in newMask:
+            casa[0] += self.x
+            casa[1] += self.y
 
 
-        for i in range (len(newMask)):
-            if (newMask[i][0]>=0 and newMask[i][0]<=14 and newMask[i][1]>=0 and newMask[i][1]<=14): #casa a ser ocupada dentro do tabuleiro
-                if ([newMask[i][0], newMask[i][1]] not in game.homes): #home position
-                    game.tab[newMask[i][1]][newMask[i][0]] = self.id
-                    '''Se tiver samurai inimigo, manda ele pra home dele e atualiza trear status dele
-                       turno par p1, impar p2 (pra saber se eh aliado ou inimigo'''
+        for casa in newMask:
+            if (casa[0]>=0 and casa[0]<game.size and casa[1]>=0 and casa[1]<game.size): #casa a ser ocupada dentro do tabuleiro
+                if ([casa[0], casa[1]] not in game.homes): #home position
+                    if [self.homeX,self.homeY] in game.homes[:len(game.p1.samurais)]:
+                        game.tab[casa[1]][casa[0]] = self.id
+                    else:
+                        game.tab[casa[1]][casa[0]] = self.id+3
+
+                    '''Se tiver samurai inimigo, manda ele pra home dele e atualiza treat status dele
+                    turno par p1, impar p2 (pra saber se eh aliado ou inimigo'''
+                    #SE JOGADOR 1
+                    if [self.homeX,self.homeY] in game.homes[:len(game.p1.samurais)]:
+                        for samurai2 in game.p2.samurais:
+                            if samurai2.x == casa[0] and samurai2.y == casa[1]:
+                                samurai2.x = samurai2.homeX
+                                samurai2.y = samurai2.homeY
+                                samurai2.treat = 18
+
+                    else:
+                        for samurai1 in game.p1.samurais:
+                            if samurai1.x == casa[0] and samurai1.y == casa[1]:
+                                samurai1.x = samurai1.homeX
+                                samurai1.y = samurai1.homeY
+                                samurai1.treat = 18            
 
         return True    
 
@@ -381,6 +409,12 @@ def main():
     game = Game()
 
     while game.turn < 96:
+
+        game.countdown_treat()
+
+        if game.turn%6 == 0:
+            game.reset_orderStats()
+
         server.send_turn(1,game.view(1))
         server.send_turn(2,game.view(2))
 
@@ -402,19 +436,27 @@ def main():
     game = Game()
 
     while game.turn < 96:
-        server.send_turn(1,game.view(1))
-        server.send_turn(2,game.view(2))
+
+        #inverte-se os indices de player1 e player2
+
+        game.countdown_treat()
+
+        if game.turn%6 == 0:
+            game.reset_orderStats()
+
 
         turno_player = 2-game.turn%2
 
         comando = server.recv_comandos(turno_player)
 
         if turno_player == 1:
-            game.p1.order(comando,game)
-        else:
             game.p2.order(comando,game)
+        else:
+            game.p1.order(comando,game)
 
     score1 += game.score(1)
     score2 += game.score(2)
 
 main()
+
+
