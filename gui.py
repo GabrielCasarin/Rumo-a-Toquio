@@ -164,7 +164,7 @@ class Cliente:
                     x, y = int(x), int(y)
                     samurai.hidden = int(hidden)
                     if (x,y) != (-1, -1):
-                        samurai.set_center(self.board.casas[(x,y)]['rect'].center)
+                        samurai.set_center(self.board.casas[(y,x)]['rect'].center)
                         samurai.draw(self.screen)
                     samurai.treatment = int(treatment)
                     samurai.order_status = int(order_status)
@@ -211,7 +211,7 @@ class Cliente:
                     x, y = int(x), int(y)
                     samurai.hidden = int(hidden)
                     if (x,y) != (-1, -1):
-                        samurai.set_center(self.board.casas[(x,y)]['rect'].center)
+                        samurai.set_center(self.board.casas[(y,x)]['rect'].center)
                         samurai.draw(self.screen)
                     samurai.treatment = int(treatment)
                     samurai.order_status = int(order_status)
