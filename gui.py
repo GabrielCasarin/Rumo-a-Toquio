@@ -24,6 +24,8 @@ bgrect = bg.get_rect()
 SCREEN.blit(bg,bgrect)
 pygame.display.update()
 
+print(IMAGES_BUTTONS)
+
 class Samurai(pygame.sprite.Sprite):
     def __init__(self, img_name):
         super(Samurai, self).__init__()
@@ -93,28 +95,44 @@ class Cliente:
             'occupy_up':    {'rect': pygame.Rect(cox,       coy-bSize,  bSize,bSize), 'num':7, 'img':"Up" },
             'occupy_left':  {'rect': pygame.Rect(cox-bSize, coy,        bSize,bSize), 'num':8, 'img':"Left" },
 
-            'Hide':         {'rect': pygame.Rect(610,145,   60,bSize), 'num':9},
+            'hide':         {'rect': pygame.Rect(610,145,   60,bSize), 'num':9, 'img': 'Hide'},
 
-            'Send':         {'rect': pygame.Rect(300,500,bSize,bSize), 'num':0},
+            'Send':         {'rect': pygame.Rect(300,500,bSize,bSize), 'num':0, 'img': 'Send'},
 
-            'Erase':        {'rect': pygame.Rect(250,500,bSize,bSize), 'num':-1}
+            'Erase':        {'rect': pygame.Rect(250,500,bSize,bSize), 'num':-1, 'img': 'Erase'}
         }
 
 
-        pygame.draw.rect(self.screen,(20,20,20),self.Acoes['move_down']['rect'])
-        pygame.draw.rect(self.screen,(20,20,20),self.Acoes['move_left']['rect'])
-        pygame.draw.rect(self.screen,(20,20,20),self.Acoes['move_up']['rect'])
-        pygame.draw.rect(self.screen,(20,20,20),self.Acoes['move_right']['rect'])
+        # pygame.draw.rect(self.screen,(20,20,20),self.Acoes['move_down']['rect'])
+        # pygame.draw.rect(self.screen,(20,20,20),self.Acoes['move_left']['rect'])
+        # pygame.draw.rect(self.screen,(20,20,20),self.Acoes['move_up']['rect'])
+        # pygame.draw.rect(self.screen,(20,20,20),self.Acoes['move_right']['rect'])
 
-        pygame.draw.rect(self.screen,(20,20,20),self.Acoes['occupy_down']['rect'])
-        pygame.draw.rect(self.screen,(20,20,20),self.Acoes['occupy_left']['rect'])
-        pygame.draw.rect(self.screen,(20,20,20),self.Acoes['occupy_up']['rect'])
-        pygame.draw.rect(self.screen,(20,20,20),self.Acoes['occupy_right']['rect'])
+        # pygame.draw.rect(self.screen,(20,20,20),self.Acoes['occupy_down']['rect'])
+        # pygame.draw.rect(self.screen,(20,20,20),self.Acoes['occupy_left']['rect'])
+        # pygame.draw.rect(self.screen,(20,20,20),self.Acoes['occupy_up']['rect'])
+        # pygame.draw.rect(self.screen,(20,20,20),self.Acoes['occupy_right']['rect'])
 
-        pygame.draw.rect(self.screen,(20,20,20),self.Acoes['Hide']['rect'])
+        # pygame.draw.rect(self.screen,(20,20,20),self.Acoes['Hide']['rect'])
 
-        pygame.draw.rect(self.screen,(20,20,20),self.Acoes['Send']['rect'])
-        pygame.draw.rect(self.screen,(20,20,20),self.Acoes['Erase']['rect'])
+        # pygame.draw.rect(self.screen,(20,20,20),self.Acoes['Send']['rect'])
+        # pygame.draw.rect(self.screen,(20,20,20),self.Acoes['Erase']['rect'])
+        self.screen.blit(IMAGES_BUTTONS['Down'],self.Acoes['move_down']['rect'])
+        self.screen.blit(IMAGES_BUTTONS['Right'],self.Acoes['move_right']['rect'])
+        self.screen.blit(IMAGES_BUTTONS['Up'],self.Acoes['move_up']['rect'])
+        self.screen.blit(IMAGES_BUTTONS['Left'],self.Acoes['move_left']['rect'])
+
+        self.screen.blit(IMAGES_BUTTONS['Down'],self.Acoes['occupy_down']['rect'])
+        self.screen.blit(IMAGES_BUTTONS['Right'],self.Acoes['occupy_right']['rect'])
+        self.screen.blit(IMAGES_BUTTONS['Up'],self.Acoes['occupy_up']['rect'])
+        self.screen.blit(IMAGES_BUTTONS['Left'],self.Acoes['occupy_left']['rect'])
+
+        self.screen.blit(IMAGES_BUTTONS['Erase'],self.Acoes['Erase']['rect'])
+        self.screen.blit(IMAGES_BUTTONS['Hide'],self.Acoes['hide']['rect'])
+        self.screen.blit(IMAGES_BUTTONS['Send'],self.Acoes['Send']['rect'])
+
+
+
 
 
         self.sock = socket.socket(socket.AF_INET, socket.SOCK_STREAM)

@@ -22,7 +22,7 @@
                 "Blue-spearused",          "Red-battleaxeused",      "Red-swordused"
             ],
     "IMG_NAMES_BUTTONS": [
-                "Done", "Down", "Erase", "Left", "Right", "Up"
+                "Down", "Erase", "Hide", "Left", "Right", "Send", "Up"
         ]
 
 }
