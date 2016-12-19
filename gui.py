@@ -3,7 +3,7 @@ import socket
 import pygame
 pygame.init()
 
-MODO_OFFLINE = False
+MODO_OFFLINE = True
 
 with open('config/config.json') as jfile:
     config = json.load(jfile)
@@ -12,6 +12,9 @@ with open('config/config.json') as jfile:
     IMG_NAMES_BUTTONS = config['IMG_NAMES_BUTTONS']
 
 SCREEN      = pygame.display.set_mode((800,600))
+
+### COLOCAR TODOS OS DICIONARIOS DE IMAGENS JUNTO EM IMAGES
+
 IMAGES      = {
                 name: pygame.image.load("images/SamurAI-Images/{}.png".format(name)).convert_alpha()
                 for name in IMG_NAMES
@@ -26,11 +29,12 @@ bgrect = bg.get_rect()
 SCREEN.blit(bg,bgrect)
 pygame.display.update()
 
-#print(IMAGES_BUTTONS)
+
 
 class Samurai(pygame.sprite.Sprite):
     def __init__(self, img_name):
         super(Samurai, self).__init__()
+        self.img_name = img_name
         self.image = IMAGES[img_name]
         self.rect = self.image.get_rect(center=(-100,-100))
         self.hidden = 1
@@ -75,51 +79,43 @@ class Cliente:
 
         self.screen = SCREEN
 
-        cmx = 530#centerMoveX
-        cmy = 80#centerMoveY
+        cmx = 550#centerMoveX
+        cmy = 100#centerMoveY
 
-        cox = 690#centerOcuppyX 
-        coy = 80#centerOcuppyY
+        cox = 710#centerOcuppyX 
+        coy = 100#centerOcuppyY
 
         bSize = 40
 
 
         self.Acoes = {
-
-            'move_down':    {'rect': pygame.Rect(cmx,       cmy+bSize,  bSize,bSize), 'num':1, 'img':"Down" },
-            'move_right':   {'rect': pygame.Rect(cmx+bSize, cmy,        bSize,bSize), 'num':2, 'img':"Right" },
-            'move_up':      {'rect': pygame.Rect(cmx,       cmy-bSize,  bSize,bSize), 'num':3, 'img':"Up" },
-            'move_left':    {'rect': pygame.Rect(cmx-bSize, cmy,        bSize,bSize), 'num':4, 'img':"Left" },
-
-            'occupy_down':  {'rect': pygame.Rect(cox,       coy+bSize,  bSize,bSize), 'num':5, 'img':"Down" },
-            'occupy_right': {'rect': pygame.Rect(cox+bSize, coy,        bSize,bSize), 'num':6, 'img':"Right" },
-            'occupy_up':    {'rect': pygame.Rect(cox,       coy-bSize,  bSize,bSize), 'num':7, 'img':"Up" },
-            'occupy_left':  {'rect': pygame.Rect(cox-bSize, coy,        bSize,bSize), 'num':8, 'img':"Left" },
-
-            'hide':         {'rect': pygame.Rect(610,145,   60,bSize), 'num':9, 'img': 'Hide'},
-
-            'Send':         {'rect': pygame.Rect(300,500,bSize,bSize), 'num':0, 'img': 'Send'},
-
-            'Erase':        {'rect': pygame.Rect(250,500,bSize,bSize), 'num':-1, 'img': 'Erase'}
+            'move_down':    {'rect': '', 'center': [cmx,        cmy+bSize],  'num':1, 'img':"Down"   },
+            'move_right':   {'rect': '', 'center': [cmx+bSize,  cmy      ],  'num':2, 'img':"Right"  },
+            'move_up':      {'rect': '', 'center': [cmx,        cmy-bSize],  'num':3, 'img':"Up"     },
+            'move_left':    {'rect': '', 'center': [cmx-bSize,  cmy      ],  'num':4, 'img':"Left"   },
+            'occupy_down':  {'rect': '', 'center': [cox,        coy+bSize],  'num':5, 'img':"Down"   },
+            'occupy_right': {'rect': '', 'center': [cox+bSize,  coy      ],  'num':6, 'img':"Right"  },
+            'occupy_up':    {'rect': '', 'center': [cox,        coy-bSize],  'num':7, 'img':"Up"     },
+            'occupy_left':  {'rect': '', 'center': [cox-bSize,  coy      ],  'num':8, 'img':"Left"   },
+            'hide':         {'rect': '', 'center': [630,        165      ],  'num':9, 'img':"Hide"   },
+            'Send':         {'rect': '', 'center': [320,        520      ],  'num':0, 'img':"Send"   },
+            'Erase':        {'rect': '', 'center': [270,        520      ],  'num':-1,'img':"Erase"  }
         }
 
+        self.choseSamurai = {
+            'spear':        {'rect': '','center': [550,   200],  'num':0, 'imgEnable':"Blue-spear",     'imgDisable':"Blue-spearused" },
+            'sword':        {'rect': '','center': [550,   240],  'num':1, 'imgEnable':"Blue-sword"    ,  'imgDisable':"Blue-swordused"     },
+            'b-axe':        {'rect': '','center': [550,   280],  'num':2, 'imgEnable':"Blue-battleaxe",  'imgDisable':"Blue-battleaxeused"     }
+        }
 
-        self.screen.blit(IMAGES_BUTTONS['Down'],self.Acoes['move_down']['rect'])
-        self.screen.blit(IMAGES_BUTTONS['Right'],self.Acoes['move_right']['rect'])
-        self.screen.blit(IMAGES_BUTTONS['Up'],self.Acoes['move_up']['rect'])
-        self.screen.blit(IMAGES_BUTTONS['Left'],self.Acoes['move_left']['rect'])
+        for acao, argumento in self.Acoes.items():
+            buttonImg = IMAGES_BUTTONS[self.Acoes[acao]['img']]
+            buttonRect = buttonImg.get_rect(center=self.Acoes[acao]['center'])
+            self.Acoes[acao]['rect']=buttonRect
+            self.screen.blit(buttonImg,buttonRect)
 
-        self.screen.blit(IMAGES_BUTTONS['Down'],self.Acoes['occupy_down']['rect'])
-        self.screen.blit(IMAGES_BUTTONS['Right'],self.Acoes['occupy_right']['rect'])
-        self.screen.blit(IMAGES_BUTTONS['Up'],self.Acoes['occupy_up']['rect'])
-        self.screen.blit(IMAGES_BUTTONS['Left'],self.Acoes['occupy_left']['rect'])
-
-        self.screen.blit(IMAGES_BUTTONS['Erase'],self.Acoes['Erase']['rect'])
-        self.screen.blit(IMAGES_BUTTONS['Hide'],self.Acoes['hide']['rect'])
-        self.screen.blit(IMAGES_BUTTONS['Send'],self.Acoes['Send']['rect'])
-
-
-
+        pygame.display.update()
+   
 
         if not MODO_OFFLINE:
             self.sock = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
@@ -134,12 +130,12 @@ class Cliente:
 
 
         self.samurais = {
-            1: Samurai("Blue-battleaxe"),
-            2: Samurai("Blue-spear"),
-            3: Samurai("Blue-sword"),
-            4: Samurai("Red-battleaxe"),
-            5: Samurai("Red-spear"),
-            6: Samurai("Red-sword"),
+            1: Samurai("Blue-spear"),
+            2: Samurai("Blue-sword"),
+            3: Samurai("Blue-battleaxe"),
+            4: Samurai("Red-spear"),
+            5: Samurai("Red-sword"),
+            6: Samurai("Red-battleaxe"),
         }
 
 
@@ -169,6 +165,17 @@ class Cliente:
                     samurai.treatment = int(treatment)
                     samurai.order_status = int(order_status)
 
+                    for choseSam, argumento in self.choseSamurai.items():
+                        if self.choseSamurai[choseSam]['imgEnable'] == samurai.img_name:
+                            if samurai.treatment == 0 and samurai.order_status == 0:
+                                buttonImg = IMAGES[self.choseSamurai[choseSam]['imgEnable']]
+                            else:
+                                buttonImg = IMAGES[self.choseSamurai[choseSam]['imgDisable']]
+                            buttonRect = buttonImg.get_rect(center=self.choseSamurai[choseSam]['center'])
+                            self.choseSamurai[choseSam]['rect']=buttonRect
+                            self.screen.blit(buttonImg,buttonRect)
+
+
                 pygame.display.update()
 
                 print(self.turno_atual%2+1,self.num)
@@ -176,6 +183,10 @@ class Cliente:
                     while self.estado != 'enviar_comandos':
                         for event in pygame.event.get():
                             if event.type == pygame.MOUSEBUTTONDOWN:
+                                for nome, botao in self.choseSamurai.items():
+                                    if botao['rect'].collidepoint(event.pos):
+                                        self.order.append(str(botao['num']))
+                                        print(self.order)
                                 for nome, botao in self.Acoes.items():
                                     if botao['rect'].collidepoint(event.pos):
                                         if botao['num'] == -1:
@@ -216,6 +227,16 @@ class Cliente:
                     samurai.treatment = int(treatment)
                     samurai.order_status = int(order_status)
 
+                    for choseSam, argumento in self.choseSamurai.items():
+                        if self.choseSamurai[choseSam]['imgEnable'] == samurai.img_name:
+                            if samurai.treatment == 0 and samurai.order_status == 0:
+                                buttonImg = IMAGES[self.choseSamurai[choseSam]['imgEnable']]
+                            else:
+                                buttonImg = IMAGES[self.choseSamurai[choseSam]['imgDisable']]
+                            buttonRect = buttonImg.get_rect(center=self.choseSamurai[choseSam]['center'])
+                            self.choseSamurai[choseSam]['rect']=buttonRect
+                            self.screen.blit(buttonImg,buttonRect)
+
                 pygame.display.update()
 
                 print(self.turno_atual%2+1,self.num)
@@ -223,18 +244,25 @@ class Cliente:
                     while self.estado != 'enviar_comandos':
                         for event in pygame.event.get():
                             if event.type == pygame.MOUSEBUTTONDOWN:
-                                for nome, botao in self.Acoes.items():
-                                    if botao['rect'].collidepoint(event.pos):
-                                        if botao['num'] == -1:
-                                            if self.order:
-                                                self.order.pop()
-                                        else:
+                                if not(self.order):
+                                    for nome, botao in self.choseSamurai.items():
+                                        if botao['rect'].collidepoint(event.pos):
                                             self.order.append(str(botao['num']))
-                                            if botao['num'] == 0:
-                                                self.estado = 'enviar_comandos'
-                                        print(self.order)
+                                            print(self.order)
+                                else:
+                                    for nome, botao in self.Acoes.items():
+                                        if botao['rect'].collidepoint(event.pos):
+                                            if botao['num'] == -1:
+                                                if self.order:
+                                                    self.order.pop()
+                                            else:
+                                                self.order.append(str(botao['num']))
+                                                if botao['num'] == 0:
+                                                    self.estado = 'enviar_comandos'
+                                            print(self.order)
                             elif event.type == pygame.QUIT:
                                 pygame.quit()
+                                self.sock.close()
 
     def request_turn(self):
         print('Aguardando envio de informações de turno por parte do Game Manager...')
