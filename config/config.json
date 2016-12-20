@@ -11,18 +11,26 @@
         "8": [200,200,200],
         "9": [20 ,20 ,20]
     },
-    "IMG_NAMES": [
+    "IMG_SamurAI-Images": [
+
+                "Blue-battleaxe",          "Blue-sword",             "Red-spear",
+                "Blue-spear",              "Red-battleaxe",          "Red-sword",
+        
                 "Blue-battleaxehide",      "Blue-swordhide",         "Red-spearhide",
                 "Blue-battleaxehideused",  "Blue-swordhideused",     "Red-spearhideused",
-                "Blue-battleaxe",          "Blue-sword",             "Red-spear",
                 "Blue-battleaxeused",      "Blue-swordused",         "Red-spearused",
                 "Blue-spearhide",          "Red-battleaxehide",      "Red-swordhide",
                 "Blue-spearhideused",      "Red-battleaxehideused",  "Red-swordhideused",
-                "Blue-spear",              "Red-battleaxe",          "Red-sword",
                 "Blue-spearused",          "Red-battleaxeused",      "Red-swordused"
             ],
-    "IMG_NAMES_BUTTONS": [
-                "Down", "Erase", "Hide", "Left", "Right", "Send", "Up"
-        ]
+    "IMG_buttons-Images": [
+                "Down", "Erase", "Hide", "Hide2", "Left", "Right", "Send", "Up", "Empty", "More",
+                "move_down", "move_right", "move_up", "move_left", 
+                "occupy_down", "occupy_right", "occupy_up", "occupy_left"
+        ],
+
+    "IMG_info-Images": [
+        "Green", "Hidden", "Red", "Turno"
+    ]
 
 }
