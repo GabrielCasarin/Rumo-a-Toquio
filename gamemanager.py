@@ -27,34 +27,59 @@ class Game:
         self.tab = tabuleiro
 
         #definindo os Jogadores
+
         self.p1 = Jogador(1)
         self.p2 = Jogador(2)
 
-        #Definindo as Homes Positions
-        homes = []
+
+        #Definindo e preenchenco as Homes Positions
+        homes = []#player, pos
         for i in range(len(self.p1.samurais)):
-            self.tab[self.p1.samurais[i].y][self.p1.samurais[i].x] = i
-            homes.append([(self.p1.samurais[i].y),(self.p1.samurais[i].x)])
+            self.tab[self.p1.samurais[i].pos[1]][self.p1.samurais[i].pos[0]] = i
+            homes.append(self.p1.samurais[i].pos[:])
         for i in range(len(self.p2.samurais)):
-            self.tab[self.p2.samurais[i].y][self.p2.samurais[i].x] = i + 3
-            homes.append([(self.p2.samurais[i].y),(self.p2.samurais[i].x)])
-       
+            self.tab[self.p2.samurais[i].pos[1]][self.p2.samurais[i].pos[0]] = i + 3
+            homes.append(self.p2.samurais[i].pos[:])
         self.homes = homes
 
     def update(self):
         pass
 
     def view(self,player):
-        #recebe todos os dados (turno, samurais, tabuleiro)
 
+        '''Fornece todas as informações do jogo de um determinado turno para o player
+        
+        player = 1: Jogador 1
+        player = 2: Jogador 2
+
+        exemplo:
+        T                       (Turno)
+        X Y O H T               (Samurai)
+        X Y O H T
+        X Y O H T
+        X Y O H T
+        X Y O H T
+        X Y O H T
+        A A A A A A A A...      (Tabuleiro)
+        A A A A A A A A...
+        A A A A A A A A...
+        A A A A A A A A...
+        A A A A A A A A...
+        A A A A A A A A...
+        . . . . . . . . (15x15)
+
+        '''      
+
+        #string do turno
         sT = str(self.turn)
 
+        #string dos samurais
         sS = ''
-        if player != 2:
+        if player == 1:
             for samurai1 in self.p1.samurais:
                 sS += '\n'
-                sS += str(samurai1.x) + ' '#x
-                sS += str(samurai1.y) + ' '#y
+                sS += str(samurai1.pos[0]) + ' '#x
+                sS += str(samurai1.pos[1]) + ' '#y
                 sS += str(samurai1.orderStat) + ' '#orderstatus
                 sS += str(samurai1.hideStat) + ' '#showingstatus
                 sS += str(samurai1.treat)#treatmentturns
@@ -62,12 +87,12 @@ class Game:
                 
                 vendo = False
                 for samurai1 in self.p1.samurais:
-                    if distancia(samurai1.x,samurai2.x,samurai1.y,samurai2.y)<=5:
+                    if distancia(samurai1.pos[0],samurai2.pos[0],samurai1.pos[1],samurai2.pos[1])<=5 and samurai2.hideStat == 0:
                         vendo = True
                 if vendo:
                     sS += '\n'
-                    sS += str(samurai2.x) + ' '#x
-                    sS += str(samurai2.y) + ' '#y
+                    sS += str(samurai2.pos[0]) + ' '#x
+                    sS += str(samurai2.pos[1]) + ' '#y
                     sS += str(samurai2.orderStat) + ' '#orderstatus
                     sS += str(samurai2.hideStat) + ' '#showingstatus
                     sS += str(samurai2.treat)#treatmentturns
@@ -76,26 +101,26 @@ class Game:
                     sS += "-1 "
                     sS += "-1 "
                     sS += str(samurai2.orderStat) + ' '#orderstatus
-                    sS += "-1 "
+                    sS += "1 "
                     sS += str(samurai2.treat)#treatmentturns
 
-        else:
+        elif player == 2:
             for samurai2 in self.p2.samurais:
                 sS += '\n'
-                sS += str(samurai2.x) + ' '#x
-                sS += str(samurai2.y) + ' '#y
+                sS += str(samurai2.pos[0]) + ' '#x
+                sS += str(samurai2.pos[1]) + ' '#y
                 sS += str(samurai2.orderStat) + ' '#orderstatus
                 sS += str(samurai2.hideStat) + ' '#showingstatus
                 sS += str(samurai2.treat) #treatmentturns             
             for samurai1 in self.p1.samurais:
                 vendo = False
                 for samurai2 in self.p2.samurais:
-                    if distancia(samurai1.x,samurai2.x,samurai1.y,samurai2.y)<=5:
+                    if distancia(samurai1.pos[0],samurai2.pos[0],samurai1.pos[1],samurai2.pos[1])<=5 and samurai1.hideStat == 0:
                         vendo = True
                 if vendo:
                     sS += '\n'
-                    sS += str(samurai1.x) + ' '#x
-                    sS += str(samurai1.y) + ' '#y
+                    sS += str(samurai1.pos[0]) + ' '#x
+                    sS += str(samurai1.pos[1]) + ' '#y
                     sS += str(samurai1.orderStat) + ' '#orderstatus
                     sS += str(samurai1.hideStat) + ' '#showingstatus
                     sS += str(samurai1.treat)#treatmentturns
@@ -104,7 +129,7 @@ class Game:
                     sS += "-1 "
                     sS += "-1 "
                     sS += str(samurai1.orderStat) + ' '#orderstatus
-                    sS += "-1 "
+                    sS += "1 "
                     sS += str(samurai1.treat)#treatmentturns
 
         size = self.size
@@ -117,17 +142,17 @@ class Game:
             for y1 in range (size):
                 for x1 in range (size):
                     for i in range(len(self.p1.samurais)):
-                        x2 = self.p1.samurais[i].x
-                        y2 = self.p1.samurais[i].y
+                        x2 = self.p1.samurais[i].pos[0]
+                        y2 = self.p1.samurais[i].pos[1]
                         if distancia(x1,x2,y1,y2)<=5:
                             newTab[y1][x1] = self.tab[y1][x1]
 
         if player == 2:
             for y1 in range (size):
                 for x1 in range (size):
-                    for i in range(len(self.p1.samurais)):
-                        x2 = self.p2.samurais[i].x
-                        y2 = self.p2.samurais[i].y
+                    for i in range(len(self.p2.samurais)):
+                        x2 = self.p2.samurais[i].pos[0]
+                        y2 = self.p2.samurais[i].pos[1]
                         if distancia(x1,x2,y1,y2)<=5:
 
                             #Invertendo os samurais para o player2 (0>3,1>4,2>5,3>0,4>1,5>2)
@@ -137,17 +162,24 @@ class Game:
                                 newTab[y1][x1] = self.tab[y1][x1]-3
                             else:
                                 newTab[y1][x1] = self.tab[y1][x1]
-                                    
+        
+        #string do tabuleiro(Mapa)                    
         sM =''
         for y in range(len(newTab)):
             sM += '\n'
             for x in range(len(newTab)-1):
                 sM += str(newTab[y][x]) + ' '
-            sM += str(newTab[y][x])
+            sM += str(newTab[y][size-1])
 
         s = sT + sS + sM
         
         return(s)
+
+    def clearOrderStat(self):
+        for samurai1 in self.p1.samurais:
+            samurai1.orderStat = 0
+        for samurai2 in self.p2.samurais:
+            samurai2.orderStat = 0
 
     def score(self,player):
 
@@ -166,24 +198,26 @@ class Game:
                             count += 1
         return count
                        
- 
-
 class Jogador:
     def __init__(self,player):
         
-        samurais = []
+        # samurais = []
+        # if player == 1:
+        #     # samurais.append(Samurai(0,0,0))
+        #     # samurais.append(Samurai(1,0,7))
+        #     # samurais.append(Samurai(2,7,0))
+        # elif player == 2:
+        #     # samurais.append(Samurai(0,14,14))
+        #     # samurais.append(Samurai(1,14,7))
+        #     # samurais.append(Samurai(2,7,14))
+
+        
         if player == 1:
-            samurais.append(Samurai(0,0,0))
-            samurais.append(Samurai(1,0,7))
-            samurais.append(Samurai(2,7,0))
+            self.samurais = [Samurai(i) for i in range(0,3)]
         elif player == 2:
-            samurais.append(Samurai(0,14,14))
-            samurais.append(Samurai(1,14,7))
-            samurais.append(Samurai(2,7,14))                
-        self.samurais = samurais
+            self.samurais = [Samurai(i) for i in range(3,6)]  
 
     def order(self, comando, game):
-        game.turn += 1
         budget = 7
         cont = True
 
@@ -202,12 +236,14 @@ class Jogador:
         if samurai.orderStat == 1: #se ja jogou, nao joga
             print('Samurai já jogou nesse período')
             cont = False
+        else:
+            samurai.orderStat = 1
 
         samurai.orderStat
 
         while comando and cont:
             acao = int(comando.pop(0))
-            if acao in [0,1,2,3,4,5,6,7,8,9]:
+            if acao in [i for i in range(10)]:
                 cont, custo = samurai.action(game,acao,budget)
                 budget -= custo
             else: 
@@ -215,24 +251,45 @@ class Jogador:
                 print('Order invalida')
 
 class Samurai:
-    def __init__(self,weaponID,x,y):
-        self.id = weaponID      
-        self.homeX = x
-        self.homeY = y
-        self.x = x
-        self.y = y
+    #def __init__(self,weaponID,x,y):
+    def __init__(self,num):
+
+        if num == 0:
+            self.home = [ 0, 0]
+        elif num == 1:
+            self.home = [ 0, 7]
+        elif num == 2:
+            self.home = [ 7, 0]
+        elif num == 3:
+            self.home = [14,14]
+        elif num == 4:
+            self.home = [14, 7]
+        elif num == 5:
+            self.home = [ 7,14]
+
+        self.id = num%3
+        self.player = num//3 + 1
+
+        self.pos = self.home[:]
+
+        # self.id = weaponID
+        # self.homeX = x
+        # self.homeY = y
+
+        # self.x = x
+        # self.Y = y
+
         self.orderStat = 0
         self.hideStat = 0
         self.treat = 0
 
+        #definindo o padrao de ataque para baixo
         if self.id == 0:
-            mask = [[0,1],[0,2],[0,3],[0,4]]
+            self.atkMask = [[0,1],[0,2],[0,3],[0,4]]
         elif self.id == 1:
-            mask = [[0,2],[0,1],[1,1],[1,0],[2,0]]
+            self.atkMask = [[0,2],[0,1],[1,1],[1,0],[2,0]]
         elif self.id == 2:
-            mask = [[1,-1],[1,0],[1,1],[0,1],[-1,1],[-1,0],[-1,-1]]
-
-        self.mask = mask
+            self.atkMask = [[1,-1],[1,0],[1,1],[0,1],[-1,1],[-1,0],[-1,-1]]
 
     def __str__(self):
 
@@ -243,17 +300,19 @@ class Samurai:
             s += '  - Sword' 
         if self.id%3 == 2:
             s += '  - B.Axe'
-        s += ('\nid        = %d')%(self.id)
-        s += ('\nhomeX     = %d')%(self.homeX)
-        s += ('\nhomeY     = %d')%(self.homeY)
-
-        s += ('\n\nx         = %d')%(self.x)
-        s += ('\ny         = %d')%(self.y)
-        s += ('\norderStat = %d')%(self.orderStat)
-        s += ('\nhideStat  = %d')%(self.hideStat)
-        s += ('\ntreat     = %d')%(self.treat)
+        s += ('\nid        = {}').format(self.id)
+        s += ('\nhome      = {}').format(self.home)    
+        s += ('\n\npos      = {}').format(self.pos)
+        s += ('\norderStat = {}').format(self.orderStat)
+        s += ('\nhideStat  = {}').format(self.hideStat)
+        s += ('\ntreat     = {}').format(self.treat)
         return s
 
+    def injury(self):
+        self.pos = self.home[:]
+        self.orderStat = 0
+        self.hideStat = 0
+        self.treat = 18
 
     def action(self,game,acao,budget): 
 
@@ -277,17 +336,17 @@ class Samurai:
 
     def move(self, game, acao):
         if acao == 5: #south
-            x = self.x
-            y = self.y + 1
+            x = self.pos[0]
+            y = self.pos[1] + 1
         elif acao == 6: #east
-            x = self.x + 1
-            y = self.y
+            x = self.pos[0] + 1
+            y = self.pos[1]
         elif acao == 7: #north
-            x = self.x
-            y = self.y - 1
+            x = self.pos[0]
+            y = self.pos[1] - 1
         elif acao == 8: #west
-            x = self.x - 1
-            y = self.y
+            x = self.pos[0] - 1
+            y = self.pos[1]
 
         '''verifica se o movimento eh valido'''
         
@@ -302,11 +361,11 @@ class Samurai:
 
         if (self.hideStat==1): #samurai escondido e saindo de area conquistada pelo time
             #SE JOGADOR 1
-            if [self.homeX,self.homeY] in game.homes[:len(game.p1.samurais)]:
+            if self.player == 1:
                 if(game.tab[y][x] in [0,1,2]):
                     print('Samurai escondido não pode ir pra area inimiga')
                     return False
-            elif [self.homeX,self.homeY] in game.homes[len(game.p2.samurais):]:#se jogador 2
+            elif self.player == 2:#se jogador 2
                 if(game.tab[y][x] in [3,4,5]):
                     print('Samurai escondido não pode ir pra area inimiga')
                     return False
@@ -314,16 +373,16 @@ class Samurai:
         if (self.hideStat == 0): #dois samurais aparecendo na mesma posicao
             for i in range (3):
                 if (game.p1.samurais[i].hideStat == 0):
-                    if ([x,y] == [game.p1.samurais[i].x, game.p1.samurais[i].y]):
+                    if ([x,y] == [game.p1.samurais[i].pos[0], game.p1.samurais[i].pos[1]]):
                         print('Samurai não pode entrar em casa ocupada')
                         return False
                 if (game.p2.samurais[i].hideStat == 0):
-                    if ([x,y] == [game.p2.samurais[i].x, game.p2.samurais[i].y]):
+                    if ([x,y] == [game.p2.samurais[i].pos[0], game.p2.samurais[i].pos[1]]):
                         print('Samurai não pode entrar em casa ocupada')
                         return False
 
-        self.x = x
-        self.y = y
+        self.pos[0] = x
+        self.pos[1] = y
         return True
 
     def occupy(self, game, acao):
@@ -332,35 +391,48 @@ class Samurai:
             print('Samurai escondido não pode atacar')
             return False
 
-        newMask = []
-        for pos in self.mask:
-            newMask.append([pos[0],pos[1]])
+        atkArea = []
+        for occPos in self.atkMask:
+            atkArea.append([occPos[0],occPos[1]])
 
         #Rotacoes
         if acao == 1:
             pass
         elif acao == 2:
-            for pos in newMask:
-                pos[0],pos[1]=pos[1],-pos[0]
+            for occPos in atkArea:
+                occPos[0],occPos[1]=occPos[1],-occPos[0]
         elif acao == 3:
-            for pos in newMask:
-                pos[0],pos[1]=-pos[0],-pos[1]
+            for occPos in atkArea:
+                occPos[0],occPos[1]=-occPos[0],-occPos[1]
         elif acao == 4:
-            for pos in newMask:
-                pos[0],pos[1]=-pos[1],pos[0]
+            for occPos in atkArea:
+                occPos[0],occPos[1]=-occPos[1],occPos[0]
 
-        for pos in newMask:
-            pos[0] += self.x
-            pos[1] += self.y
+        for occPos in atkArea:
+            occPos[0] += self.pos[0]
+            occPos[1] += self.pos[1]
 
 
-        for i in range (len(newMask)):
-            if (newMask[i][0]>=0 and newMask[i][0]<=14 and newMask[i][1]>=0 and newMask[i][1]<=14): #casa a ser ocupada dentro do tabuleiro
-                if ([newMask[i][0], newMask[i][1]] not in game.homes): #home position
-                    game.tab[newMask[i][1]][newMask[i][0]] = self.id
-                    '''Se tiver samurai inimigo, manda ele pra home dele e atualiza trear status dele
-                       turno par p1, impar p2 (pra saber se eh aliado ou inimigo'''
+        for i in range (len(atkArea)):
+            if (atkArea[i][0]>=0 and atkArea[i][0]<=14 and atkArea[i][1]>=0 and atkArea[i][1]<=14): #casa a ser ocupada dentro do tabuleiro
+                if (atkArea[i] not in game.homes): #home position
+                    game.tab[atkArea[i][1]][atkArea[i][0]] = self.id +3*self.player-3
 
+                '''Se tiver samurai inimigo, manda ele pra home dele e atualiza trear status'''
+
+                if self.player == 1:
+                    for samurai2 in game.p2.samurais:
+                        if samurai2.pos == atkArea[i]:
+                            print('Samurai machucado')
+                            samurai2.injury()
+                if self.player == 2:
+                    for samurai1 in game.p1.samurais:
+                        if samurai1.pos == atkArea[i]:
+                            print('Samurai machucado')
+                            samurai1.injury()
+
+
+ 
         return True    
 
     def hide(self, game):
@@ -368,22 +440,22 @@ class Samurai:
 
         #verificando se está tentando esconder em território inimigo
         if self.hideStat == 0:      
-            if [self.homeX,self.homeY] in game.homes[:len(game.p1.samurais)]: #verifica se é player1
-                if game.tab[self.y][self.x] in [3,4,5]:
+            if self.player == 1: #verifica se é player1
+                if game.tab[self.pos[1]][self.pos[0]] in [3,4,5]:
                     print ('Samurai não pode se esconder em território inimigo')
                     return False
             else:
-                if game.tab[self.y][self.x] in [0,1,2]:
+                if game.tab[self.pos[1]][self.pos[0]] in [0,1,2]:
                     print ('Samurai não pode se esconder em território inimigo')
                     return False
        
         #verificando se está tentando aparecer onde já tem algum samurai aparecendo
         if (self.hideStat == 1):
             for i in range (3):
-                if (game.p1.samurais[i].hideStat == 0) and ([self.x,self.y] == [game.p1.samurais[i].x, game.p1.samurais[i].y]):
+                if (game.p1.samurais[i].hideStat == 0) and ([self.pos[0],self.pos[1]] == [game.p1.samurais[i].pos[0], game.p1.samurais[i].pos[1]]):
                     print ('Samurai não pode aparecer onde já tem um samurai aparecendo')
                     return False
-                if (game.p2.samurais[i].hideStat == 0) and ([self.x,self.y] == [game.p2.samurais[i].x, game.p2.samurais[i].y]):
+                if (game.p2.samurais[i].hideStat == 0) and ([self.pos[0],self.pos[1]] == [game.p2.samurais[i].pos[0], game.p2.samurais[i].pos[1]]):
                     print ('Samurai não pode aparecer onde já tem um samurai aparecendo')
                     return False
 
@@ -402,11 +474,12 @@ def main():
     game = Game()
 
     while game.turn < 96:
+
         server.send_turn(1,game.view(1))
         server.send_turn(2,game.view(2))
 
         turno_player = game.turn%2+1
-        print(turno_player)
+        print('Turno {}: player {}'.format(game.turn, turno_player))
 
         comando = server.recv_comandos(turno_player)
 
@@ -414,19 +487,26 @@ def main():
             game.p1.order(comando,game)
         else:
             game.p2.order(comando,game)
+
+        game.turn += 1
+        if game.turn%6 == 0:
+            game.clearOrderStat()
 
     score1 += game.score(1)
     score2 += game.score(2)
 
 
     #partida2:
-    game = Game()
+    game.__init__()
+
+    # game.p1, game.p2 = game.p2, game.p1
 
     while game.turn < 96:
         server.send_turn(1,game.view(1))
         server.send_turn(2,game.view(2))
 
         turno_player = 2-game.turn%2
+        print('Turno {}: player {}'.format(game.turn, turno_player))
 
         comando = server.recv_comandos(turno_player)
 
@@ -435,8 +515,21 @@ def main():
         else:
             game.p2.order(comando,game)
 
+        game.turn += 1
+        if game.turn%6 == 0:
+            game.clearOrderStat()
+
     score1 += game.score(1)
     score2 += game.score(2)
 
 main()
-
+# g = Game()
+# #print(g.tab)
+# # print(g.view(1))
+# # g.p1.order('0 1 5 9',g)
+# # print(g.view(2))
+# # g.p1.order('0 1 5 9',g)
+# print(g.tab)
+# print(g.view(2))
+# g.p2.order('0 3 8 9',g)
+# print(g.tab)

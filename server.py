@@ -14,16 +14,19 @@ class Server:
         self.serversocket.listen(2)
 
     def aguardar_jogadores(self):
+        #Regras do jogo:
+        #manda 0 para o player 1
+        #manda 1 para o player 2
         print('servidor iniciado')
         print('aguardando conexoes...')
         self.sock_player1, addr = self.serversocket.accept()
         print('player 1 conectou-se')
         print('endereco:', addr, '')
-        self.sock_player1.send(bytes('1', 'ascii'))
+        self.sock_player1.send(bytes('0', 'ascii'))
         self.sock_player2, addr = self.serversocket.accept()
         print('player 2 conectou-se')
         print('endereco:', addr, '')
-        self.sock_player2.send(bytes('2', 'ascii'))
+        self.sock_player2.send(bytes('1', 'ascii'))
 
     def send_turn(self, player, turn_msg):
         if player == 1:

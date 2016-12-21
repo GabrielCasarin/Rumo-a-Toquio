@@ -39,8 +39,6 @@ SCREEN.blit(bg,bgrect)
 myfont = pygame.font.SysFont("arial", 15)
 
 pygame.display.update()
-if WAIT:
-    pygame.time.delay(2000)
 
 class Samurai(pygame.sprite.Sprite):
     def __init__(self, num):
@@ -239,9 +237,9 @@ class Acao():
         elif num == 5:
             self.imgName, self.center = "move_down"    , (cmx,        cmy+dPad)  
         elif num == 6:
-            self.imgName, self.center = "move_up"      , (cmx,        cmy-dPad)  
-        elif num == 7:
             self.imgName, self.center = "move_right"   , (cmx+dPad,  cmy      )  
+        elif num == 7:
+            self.imgName, self.center = "move_up"      , (cmx,        cmy-dPad)  
         elif num == 8:
             self.imgName, self.center = "move_left"    , (cmx-dPad,  cmy      )  
         elif num == 9:
@@ -419,13 +417,17 @@ class Cliente:
                 config = json.load(jfile)
                 self.sock.connect((config["ip"], config["port"]))
 
-                #definindo se o player é o Player 1 ou o Player 2            
-                self.num = int(str(self.sock.recv(1), 'ascii'))
+                #definindo se o player é o Player 1 ou o Player 2
+                #Apesar de receber 0 ou 1, se converte para 1 ou 2 para ficar mais intuitivo            
+                self.num = int(str(self.sock.recv(1), 'ascii'))+1
         else:
             #definindo se o player é o Player 1 ou o Player 2
             self.num = 1
 
         print('\nSou o player {}\n'.format(self.num))
+
+        if WAIT:
+            pygame.time.delay(2000)
 
         SCREEN.fill([220,220,220])
 
@@ -451,8 +453,8 @@ class Cliente:
         self.buttonSamurai = ButtonSamurai()
 
         #atualizando o botao que escolhe o samurai com indicador se ele pode jogar
-        samurai = self.samurais[self.buttonSamurai.num]
-        self.buttonSamurai.draw(samurai)
+        #samurai = self.samurais[self.buttonSamurai.num]
+        #self.buttonSamurai.draw(samurai)
 
  
     def run(self):
@@ -485,6 +487,10 @@ class Cliente:
             for samurai in self.samurais:
                 x, y, order_status, hidden, treatment = turno[samurai.num+1].split()
                 samurai.update(self.board, x, y, order_status, hidden, treatment)
+
+            #atualizando o botao que escolhe o samurai com indicador se ele pode jogar
+            samurai = self.samurais[self.buttonSamurai.num]
+            self.buttonSamurai.draw(samurai)
 
             pygame.display.update()
 
