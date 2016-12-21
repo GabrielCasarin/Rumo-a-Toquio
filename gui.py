@@ -3,8 +3,9 @@ import socket
 import pygame
 pygame.init()
 
-MODO_OFFLINE = True
+MODO_OFFLINE = False
 PRINT_DADOS = False
+WAIT = True
 
 with open('config/config.json') as jfile:
     config = json.load(jfile)
@@ -31,15 +32,15 @@ IMAGES_INFO = {
                 }
 
 
-# bg = pygame.image.load("images/background.png")
-# bgrect = bg.get_rect()
-# SCREEN.blit(bg,bgrect)
-
-SCREEN.fill([220,220,220])
+bg = pygame.image.load("images/background.png")
+bgrect = bg.get_rect()
+SCREEN.blit(bg,bgrect)
 
 myfont = pygame.font.SysFont("arial", 15)
 
 pygame.display.update()
+if WAIT:
+    pygame.time.delay(2000)
 
 class Samurai(pygame.sprite.Sprite):
     def __init__(self, num):
@@ -362,10 +363,10 @@ class OrderList():
 
 class Turno():
 
-    def __init__(self,playerImpar):
+    def __init__(self,player):
 
         self.turn = 0
-        self.playerImpar = playerImpar #Booleano: se joga nos turnos pares
+        self.player = player #1 ou 2
 
         self.center = [550,40]
         self.boxImg = 'Turno'
@@ -377,14 +378,20 @@ class Turno():
         self.disableImg = 'Red'
         self.enabRect = IMAGES_INFO[self.enableImg].get_rect(center=self.infoCenter)
 
+        self.partida = 0 #inicia com 0, assume o valor 1 durante a primeira partida e o valor 2 durante a segunda
+
         self.draw()
 
     def setTurn(self,turno):
         self.turn = turno
+        if self.turn == 0 and not(MODO_OFFLINE):
+            self.partida += 1
+        elif MODO_OFFLINE:
+            self.partida = 1
         self.draw()
 
     def minhaVez(self):
-        return(self.turn%2 == (self.playerImpar))
+        return (False == (self.turn%2 + self.player%2 +self.partida%2)%2)
 
     def draw(self,update=False):
         
@@ -420,17 +427,16 @@ class Cliente:
 
         print('\nSou o player {}\n'.format(self.num))
 
+        SCREEN.fill([220,220,220])
+
         #definindo a surface
         self.screen = SCREEN
         
         #definindo o tabuleiro
         self.board = Board(15)
 
-        #definindo o botão que escolhe o samurai
-        self.buttonSamurai = ButtonSamurai()
-
         #definindo o turno e seu display
-        self.turn = Turno(self.num == 2)
+        self.turn = Turno(self.num)
 
         #definindo os 6 samurais
         self.samurais = [Samurai(i) for i in range(6)]
@@ -441,6 +447,10 @@ class Cliente:
         #definindo a lista de ordens
         self.orderList = OrderList()
 
+        #definindo o botão que escolhe o samurai
+        self.buttonSamurai = ButtonSamurai()
+
+        #atualizando o botao que escolhe o samurai com indicador se ele pode jogar
         samurai = self.samurais[self.buttonSamurai.num]
         self.buttonSamurai.draw(samurai)
 
@@ -476,13 +486,7 @@ class Cliente:
                 x, y, order_status, hidden, treatment = turno[samurai.num+1].split()
                 samurai.update(self.board, x, y, order_status, hidden, treatment)
 
-            #atualizando o botao que escolhe o samurai com indicador se ele pode jogar
-            # samurai = self.samurais[self.buttonSamurai.num]
-            # self.buttonSamurai.draw(samurai)
-
             pygame.display.update()
-
-
 
             #decisão se é minha vez de jogar ou esperar
             if self.turn.minhaVez():
