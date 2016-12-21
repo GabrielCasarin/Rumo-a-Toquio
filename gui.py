@@ -529,8 +529,8 @@ class Cliente:
                         #condicao de parada forçada
                         elif event.type == pygame.QUIT:
                             pygame.quit()
-                            if not MODO_OFFLINE: 
-                                self.sock.close() 
+                            if not MODO_OFFLINE:
+                                self.sock.close()
 
                 #envia os comandos para o server se não estiver no MODO_OFFLINE
                 if not MODO_OFFLINE:
