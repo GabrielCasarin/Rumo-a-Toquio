@@ -30,5 +30,6 @@
                 "Green",                   "Hidden",                 "Red",           "Blue",
                 "Turno"
     ],
-    "max_turn": 96
+    "max_turn": 96,
+    "Distancia_visao": 8
 }

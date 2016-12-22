@@ -14,6 +14,7 @@ from util import distancia
 with open('config/config.json') as jfile:
     config = json.load(jfile)
     MAX_TURN = config['max_turn']
+    DIST_VISAO = config['Distancia_visao']
 
 
 class Game:
@@ -93,7 +94,7 @@ class Game:
                 
                 vendo = False
                 for samurai1 in self.p1.samurais:
-                    if distancia(samurai1.pos[0],samurai2.pos[0],samurai1.pos[1],samurai2.pos[1])<=5 and samurai2.hideStat == 0:
+                    if distancia(samurai1.pos[0],samurai2.pos[0],samurai1.pos[1],samurai2.pos[1])<=DIST_VISAO and samurai2.hideStat == 0:
                         vendo = True
                 if vendo:
                     sS += '\n'
@@ -121,7 +122,7 @@ class Game:
             for samurai1 in self.p1.samurais:
                 vendo = False
                 for samurai2 in self.p2.samurais:
-                    if distancia(samurai1.pos[0],samurai2.pos[0],samurai1.pos[1],samurai2.pos[1])<=5 and samurai1.hideStat == 0:
+                    if distancia(samurai1.pos[0],samurai2.pos[0],samurai1.pos[1],samurai2.pos[1])<=DIST_VISAO and samurai1.hideStat == 0:
                         vendo = True
                 if vendo:
                     sS += '\n'
@@ -150,7 +151,7 @@ class Game:
                     for i in range(len(self.p1.samurais)):
                         x2 = self.p1.samurais[i].pos[0]
                         y2 = self.p1.samurais[i].pos[1]
-                        if distancia(x1,x2,y1,y2) <= 5:
+                        if distancia(x1,x2,y1,y2) <= DIST_VISAO:
                             newTab[y1][x1] = self.tab[y1][x1]
 
         if player == 2:
@@ -159,7 +160,7 @@ class Game:
                     for i in range(len(self.p2.samurais)):
                         x2 = self.p2.samurais[i].pos[0]
                         y2 = self.p2.samurais[i].pos[1]
-                        if distancia(x1,x2,y1,y2) <= 5:
+                        if distancia(x1,x2,y1,y2) <= DIST_VISAO:
 
                             #Invertendo os samurais para o player2 (0>3,1>4,2>5,3>0,4>1,5>2)
                             if self.tab[y1][x1] < 3: #0>3,1>4,2>5
@@ -377,18 +378,17 @@ class Samurai:
                 if (atkArea[i] not in game.homes): #home position
                     game.tab[atkArea[i][1]][atkArea[i][0]] = self.id +3*self.player-3
 
-                '''Se tiver samurai inimigo, manda ele pra home dele e atualiza trear status'''
-
-                if self.player == 1:
-                    for samurai2 in game.p2.samurais:
-                        if samurai2.pos == atkArea[i]:
-                            print('Samurai machucado')
-                            samurai2.injury()
-                if self.player == 2:
-                    for samurai1 in game.p1.samurais:
-                        if samurai1.pos == atkArea[i]:
-                            print('Samurai machucado')
-                            samurai1.injury()
+                    #Se tiver samurai inimigo, deixar injuried
+                    if self.player == 1:
+                        for samurai2 in game.p2.samurais:
+                            if samurai2.pos == atkArea[i]:
+                                print('Samurai machucado')
+                                samurai2.injury()
+                    if self.player == 2:
+                        for samurai1 in game.p1.samurais:
+                            if samurai1.pos == atkArea[i]:
+                                print('Samurai machucado')
+                                samurai1.injury()
         return True    
 
     def move(self, game, acao):
