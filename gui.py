@@ -218,10 +218,14 @@ class ButtonSamurai(pygame.sprite.Sprite):
         else:
             infoImg = IMAGES_INFO['Green']
 
-        infoRect = infoImg.get_rect(center=infoCenter)
-        
+        infoRect = infoImg.get_rect(center=[self.center[0]-11,self.center[1]+11])
         SCREEN.blit(infoImg,infoRect)
-        
+
+        if samurai.hidden == 1:
+            hImg = IMAGES_INFO['Hidden']
+            hRect = hImg.get_rect(center=[self.center[0]+11,self.center[1]-11])
+            SCREEN.blit(hImg,hRect)
+
         if update:
             pygame.display.update()
 

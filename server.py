@@ -30,19 +30,20 @@ class Server:
         self.sock_player1, addr = self.serversocket.accept()
         print('player 1 conectou-se')
         print('endereco:', addr, '')
-        self.sock_player1.send(bytes('0', 'ascii'))
         self.sock_player2, addr = self.serversocket.accept()
         print('player 2 conectou-se')
         print('endereco:', addr, '')
+
+        self.sock_player1.send(bytes('0', 'ascii'))
         self.sock_player2.send(bytes('1', 'ascii'))
 
     def send_turn(self, player, turn_msg):
         if player == 1:
             self.sock_player1.send(bytes(turn_msg, 'ascii'))
-            print('enviei1\n'+turn_msg)
+            print('enviei 1:\n'+turn_msg)
         elif player == 2:
             self.sock_player2.send(bytes(turn_msg, 'ascii'))
-            print('enviei2\n'+turn_msg)
+            print('enviei 2:\n'+turn_msg)
         else:
             print('player', player, 'não existe')
 
@@ -51,11 +52,11 @@ class Server:
         if player == 1:
             print('aguardando envio de comandos por parte do player %d...'%player)
             comandos = str(self.sock_player1.recv(1024), 'ascii')
-            print('comandos recebidos')
+            print('comandos recebidos: {}'.format(comandos))
         elif player == 2:
             print('aguardando envio de comandos por parte do player %d...'%player)
             comandos = str(self.sock_player2.recv(1024), 'ascii')
-            print('comandos recebidos')
+            print('comandos recebidos: {}'.format(comandos))
         else:
             print('player', player, 'não existe')
         return comandos

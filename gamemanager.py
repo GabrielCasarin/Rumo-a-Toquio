@@ -182,10 +182,13 @@ class Game:
         return s
 
     def clearOrderStat(self):
-        for samurai1 in self.p1.samurais:
-            samurai1.orderStat = 0
-        for samurai2 in self.p2.samurais:
-            samurai2.orderStat = 0
+        for samurai in self.p1.samurais + self.p2.samurais:
+            samurai.orderStat = 0
+
+    def heal(self):
+        for samurai in self.p1.samurais + self.p2.samurais:
+            if samurai.treat > 0:
+                samurai.treat -= 1
 
     def score(self, player):
         count = 0
@@ -257,6 +260,7 @@ class Samurai:
     #def __init__(self,weaponID,x,y):
     def __init__(self,num):
 
+        #Home position
         if num == 0:
             self.home = [ 0, 0]
         elif num == 1:
@@ -270,17 +274,14 @@ class Samurai:
         elif num == 5:
             self.home = [ 7,14]
 
+        #Weapon
         self.id = num%3
+        
+        #Player
         self.player = num//3 + 1
 
+        #Posicao
         self.pos = self.home[:]
-
-        # self.id = weaponID
-        # self.homeX = x
-        # self.homeY = y
-
-        # self.x = x
-        # self.Y = y
 
         self.orderStat = 0
         self.hideStat = 0
@@ -315,7 +316,7 @@ class Samurai:
         self.pos = self.home[:]
         self.orderStat = 0
         self.hideStat = 0
-        self.treat = 18
+        self.treat = 18 + 1
 
     def action(self,game,acao,budget): 
 
@@ -337,58 +338,13 @@ class Samurai:
                 custo = 1
         return cont, custo
 
-    def move(self, game, acao):
-        if acao == 5: #south
-            x = self.pos[0]
-            y = self.pos[1] + 1
-        elif acao == 6: #east
-            x = self.pos[0] + 1
-            y = self.pos[1]
-        elif acao == 7: #north
-            x = self.pos[0]
-            y = self.pos[1] - 1
-        elif acao == 8: #west
-            x = self.pos[0] - 1
-            y = self.pos[1]
-
-        '''verifica se o movimento eh valido'''
-        
-        size = game.size
-        if (x < 0 or x >= size or y < 0 or y >= size): #fora do tabuleiro
-            print('Samurai não pode sair tabuleiro')
-            return False
-
-        if ([x,y] in game.homes): #home position
-            print('Samurai não pode entrar em home positions')
-            return False
-
-        if (self.hideStat==1): #samurai escondido e saindo de area conquistada pelo time
-            #SE JOGADOR 1
-            if self.player == 1:
-                if(game.tab[y][x] in [0,1,2]):
-                    print('Samurai escondido não pode ir pra area inimiga')
-                    return False
-            elif self.player == 2:#se jogador 2
-                if(game.tab[y][x] in [3,4,5]):
-                    print('Samurai escondido não pode ir pra area inimiga')
-                    return False
-
-        if (self.hideStat == 0): #dois samurais aparecendo na mesma posicao
-            for i in range (3):
-                if (game.p1.samurais[i].hideStat == 0):
-                    if ([x,y] == [game.p1.samurais[i].pos[0], game.p1.samurais[i].pos[1]]):
-                        print('Samurai não pode entrar em casa ocupada')
-                        return False
-                if (game.p2.samurais[i].hideStat == 0):
-                    if ([x,y] == [game.p2.samurais[i].pos[0], game.p2.samurais[i].pos[1]]):
-                        print('Samurai não pode entrar em casa ocupada')
-                        return False
-
-        self.pos[0] = x
-        self.pos[1] = y
-        return True
-
     def occupy(self, game, acao):
+        #Occupies neighboring sections
+
+        #CONDICOES:
+        #   - Nao pode ocupar se estiver escondido
+
+        #   - Home positions não podem ser ocupadas
         
         if self.hideStat == 1: #Se esta escondido, nao pode ocupar
             print('Samurai escondido não pode atacar')
@@ -435,30 +391,94 @@ class Samurai:
                             samurai1.injury()
         return True    
 
-    def hide(self, game):
-      
+    def move(self, game, acao):
 
-        #verificando se está tentando esconder em território inimigo
+        #Moves to one of the adjacent sections.
+
+        #Condições: 
+        #   - (1) If the samurai is not hiding itself, it cannot move to a sections in which a non-hiding samurai is in.
+        #   - (2) A samurai hiding itself can only move to a friendly territory section. 
+        #   - (3) Whether showing or hiding itself, home positions of other samurai cannot be entered.
+
+        #   - (4) Extra (Não falado no Rules): Não sair do tabuleiro
+         
+        #Intrucoes:
+        #The move direction is specified as 5 for southward, 6
+        # for eastward, 7 for northward, and 8 for westward
+
+        #As condicoes dependem da casa que o samurai quer ir, assim sendo, (x,y) corresponde a casa que se deseja chegar.
+        if acao == 5: #south
+            x = self.pos[0]
+            y = self.pos[1] + 1
+        elif acao == 6: #east
+            x = self.pos[0] + 1
+            y = self.pos[1]
+        elif acao == 7: #north
+            x = self.pos[0]
+            y = self.pos[1] - 1
+        elif acao == 8: #west
+            x = self.pos[0] - 1
+            y = self.pos[1]
+
+
+        #(4) Sair do Tabuleiro
+        size = game.size
+        if (x < 0 or x >= size or y < 0 or y >= size): #fora do tabuleiro
+            print('Samurai não pode sair tabuleiro')
+            return False
+
+        #(1) Colisão de dois samurais aparecendo:
+        elif (self.hideStat == 0):
+            for samurai in game.p1.samurais + game.p2.samurais:
+                if samurai.hideStat == 0 and samurai.pos == [x,y]:
+                    print('Samurai não pode entrar em casa ocupada')
+                    return False
+
+        #(2) Samurai scondido só pode ir para casa aliada
+        elif (self.hideStat==1):
+            if (self.player == 1) and (game.tab[y][x] not in [0,1,2]):
+                    print('Samurai escondido não pode sair de area amiga')
+                    return False
+            elif (self.player == 2) and (game.tab[y][x] not in [3,4,5]):
+                    print('Samurai escondido não pode sair de area amiga')
+                    return False
+
+        #(3) Não pode entrar em home positions que não é a sua prória
+        elif ([x,y] in game.homes) and ([x,y] != self.home): #home position
+            print('Samurai não pode entrar em home positions que não seja a sua própria')
+            return False
+
+        #Moving
+        self.pos[0] = x
+        self.pos[1] = y
+        return True
+
+    def hide(self, game):
+        #Switches its showing state
+
+        #Concicoes
+        #(1) Hiding is only possible when the samurai is in a friendly territory section.
+        #(2) Showing is not possible if there is another non-hiding samurai, either friendly or enemy, in the same section.
+      
+        #(1) Verifica se está escondendo em território não amigo
         if self.hideStat == 0:      
-            if self.player == 1: #verifica se é player1
-                if game.tab[self.pos[1]][self.pos[0]] in [3,4,5]:
-                    print ('Samurai não pode se esconder em território inimigo')
+            if self.player == 1:
+                if game.tab[self.pos[1]][self.pos[0]] not in [0,1,2]:
+                    print ('Samurai não pode se esconder em território não amigo')
                     return False
             else:
-                if game.tab[self.pos[1]][self.pos[0]] in [0,1,2]:
-                    print ('Samurai não pode se esconder em território inimigo')
+                if game.tab[self.pos[1]][self.pos[0]] not in [3,4,5]:
+                    print ('Samurai não pode se esconder em território não amigo')
                     return False
-       
-        #verificando se está tentando aparecer onde já tem algum samurai aparecendo
+
+        #(2) Verifica se está tentando aparecer onde já tem algum samurai aparecendo
         if (self.hideStat == 1):
-            for i in range (3):
-                if (game.p1.samurais[i].hideStat == 0) and ([self.pos[0],self.pos[1]] == [game.p1.samurais[i].pos[0], game.p1.samurais[i].pos[1]]):
-                    print ('Samurai não pode aparecer onde já tem um samurai aparecendo')
-                    return False
-                if (game.p2.samurais[i].hideStat == 0) and ([self.pos[0],self.pos[1]] == [game.p2.samurais[i].pos[0], game.p2.samurais[i].pos[1]]):
+            for samurai in game.p1.samurais + game.p2.samurais:
+                if samurai.hideStat == 0 and samurai.pos == self.pos:
                     print ('Samurai não pode aparecer onde já tem um samurai aparecendo')
                     return False
 
+        #Switching state
         self.hideStat = 1-self.hideStat
         return True
 
@@ -471,59 +491,40 @@ def main():
     server = Server()
     server.aguardar_jogadores()
 
-    #partida1:
     game = Game()
 
-    while game.turn < MAX_TURN:
+    for partida in range (2):
 
-        server.send_turn(1, game.view(1))
-        server.send_turn(2, game.view(2))
+        game.__init__()
 
-        turno_player = game.turn%2 + 1
-        print('Turno {}: player {}'.format(game.turn, turno_player))
+        while game.turn < MAX_TURN:
 
-        comando = server.recv_comandos(turno_player)
+            server.send_turn(1, game.view(1))
+            server.send_turn(2, game.view(2))
 
-        if turno_player == 1:
-            game.p1.order(comando,game)
-        else:
-            game.p2.order(comando,game)
+            if partida == 0:
+                turno_player = game.turn%2 + 1
+            elif partida == 1:
+                turno_player = 2-game.turn%2
 
-        game.turn += 1
-        if game.turn%6 == 0:
-            game.clearOrderStat()
+            print('Turno {}: player {}'.format(game.turn, turno_player))
 
-    score1 += game.score(1)
-    score2 += game.score(2)
+            comando = server.recv_comandos(turno_player)
 
-    server.send_scores(score1, score2)
+            if turno_player == 1:
+                game.p1.order(comando,game)
+            else:
+                game.p2.order(comando,game)
 
-    #partida2:
-    game.__init__()
+            game.turn += 1
+            if game.turn%6 == 0:
+                game.clearOrderStat()
 
-    # game.p1, game.p2 = game.p2, game.p1
+            game.heal()
 
-    while game.turn < MAX_TURN:
-        server.send_turn(1,game.view(1))
-        server.send_turn(2,game.view(2))
+        score1 += game.score(1)
+        score2 += game.score(2)
 
-        turno_player = 2-game.turn%2
-        print('Turno {}: player {}'.format(game.turn, turno_player))
-
-        comando = server.recv_comandos(turno_player)
-
-        if turno_player == 1:
-            game.p1.order(comando,game)
-        else:
-            game.p2.order(comando,game)
-
-        game.turn += 1
-        if game.turn%6 == 0:
-            game.clearOrderStat()
-
-    score1 += game.score(1)
-    score2 += game.score(2)
-    
-    server.send_scores(score1, score2)
+        server.send_scores(score1, score2)
 
 main()
