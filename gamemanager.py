@@ -192,15 +192,13 @@ class Game:
         if player == 1:
             for linha in self.tab:
                 for casa in linha:
-                    for samurai in self.p1.samurais:
-                        if samurai.id == casa:
-                            count += 1
+                    if casa in [0, 1, 2]:
+                        count += 1
         elif player == 2:
             for linha in self.tab:
                 for casa in linha:
-                    for samurai in self.p2.samurais:
-                        if samurai.id == casa:
-                            count += 1
+                    if casa in [3, 4, 5]:
+                        count += 1
         return count
                        
 
@@ -305,12 +303,12 @@ class Samurai:
             s += '  - Sword' 
         if self.id%3 == 2:
             s += '  - B.Axe'
-        s += ('\nid        = {}').format(self.id)
-        s += ('\nhome      = {}').format(self.home)    
-        s += ('\n\npos      = {}').format(self.pos)
-        s += ('\norderStat = {}').format(self.orderStat)
-        s += ('\nhideStat  = {}').format(self.hideStat)
-        s += ('\ntreat     = {}').format(self.treat)
+        s += '\nid        = {}'.format(self.id)
+        s += '\nhome      = {}'.format(self.home)    
+        s += '\n\npos      = {}'.format(self.pos)
+        s += '\norderStat = {}'.format(self.orderStat)
+        s += '\nhideStat  = {}'.format(self.hideStat)
+        s += '\ntreat     = {}'.format(self.treat)
         return s
 
     def injury(self):
