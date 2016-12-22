@@ -11,25 +11,24 @@
         "8": [200,200,200],
         "9": [20 ,20 ,20 ]
     },
+    "splash_screen": true,
+    "modo_offline": false,
     "IMG_SamurAI-Images": [
-
                 "Blue-battleaxe",          "Blue-sword",             "Red-spear",
                 "Blue-spear",              "Red-battleaxe",          "Red-sword"
             ],
     "IMG_buttons-Images": [                
                 "Send",
-                "occupy_down", "occupy_right", "occupy_up", "occupy_left",
-                "move_down", "move_right", "move_up", "move_left",
+                "occupy_down",             "occupy_right",           "occupy_up",     "occupy_left",
+                "move_down",               "move_right",             "move_up",       "move_left",
                 "Hide",
                 "Erase",
-                
-                "Empty", "More",
-
-                "Occupy", "Move"
+                "Empty",                   "More",
+                "Occupy",                  "Move"
         ],
-
     "IMG_info-Images": [
-        "Green", "Hidden", "Red",  "Blue",
-        "Turno"
-    ]
+                "Green",                   "Hidden",                 "Red",           "Blue",
+                "Turno"
+    ],
+    "max_turn": 96
 }

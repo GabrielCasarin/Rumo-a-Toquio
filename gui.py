@@ -1,11 +1,17 @@
+##################################################################
+##                                                              ##
+##      CODIGO CRIADO PELO GRUPO TURING - POLI USP 2016         ##
+##      https://www.facebook.com/grupoturing.poliusp            ##
+##      Todos podem usar este codigo livremente                 ##
+##                                                              ##
+##################################################################
+
 import json
 import socket
 import pygame
 pygame.init()
 
-MODO_OFFLINE = False
 PRINT_DADOS = False
-WAIT = True
 
 with open('config/config.json') as jfile:
     config = json.load(jfile)
@@ -13,6 +19,9 @@ with open('config/config.json') as jfile:
     IMG_NAMES = config['IMG_SamurAI-Images']
     IMG_NAMES_BUTTONS = config['IMG_buttons-Images']
     IMG_NAMES_INFO = config['IMG_info-Images']
+    MODO_OFFLINE = config['modo_offline']
+    MAX_TURN = config['max_turn']
+    SPLASH_SCREEN = config['splash_screen']
 
 SCREEN      = pygame.display.set_mode((800,600))
 
@@ -39,6 +48,7 @@ SCREEN.blit(bg,bgrect)
 myfont = pygame.font.SysFont("arial", 15)
 
 pygame.display.update()
+
 
 class Samurai(pygame.sprite.Sprite):
     def __init__(self, num):
@@ -147,7 +157,8 @@ class Samurai(pygame.sprite.Sprite):
             hRect = hImg.get_rect(center=(centerStat[0]+11,centerStat[1]-11))
             SCREEN.blit(hImg,hRect)
 
-class Board(pygame.sprite.Sprite):
+
+class Board:
     def __init__(self, n):
         super(Board, self).__init__()
         delta_x = 20
@@ -159,15 +170,16 @@ class Board(pygame.sprite.Sprite):
             } for i in range(n) for j in range(n)
         }
 
-    def update(self):
-        pass
+    def __getitem__(self, key):
+        return self.casas[key]
 
     def draw(self, surface):
         for casa in self.casas.values():
             pygame.draw.rect(surface, casa["cor"], casa["rect"])
             pygame.draw.rect(surface, (0,0,0), casa["rect"].copy(), 1)
 
-class ButtonSamurai():
+
+class ButtonSamurai(pygame.sprite.Sprite):
     def __init__(self):
    
         self.center = [550,100]
@@ -213,7 +225,8 @@ class ButtonSamurai():
         if update:
             pygame.display.update()
 
-class Acao():
+
+class Acao(pygame.sprite.Sprite):
     def __init__(self,num,update=False):
 
         cmx = 550   #centerMoveX
@@ -262,7 +275,8 @@ class Acao():
         if update:
             pygame.display.update()
 
-class OrderList():
+
+class OrderList(pygame.sprite.Sprite):
 
     def __init__(self):
 
@@ -359,7 +373,8 @@ class OrderList():
             #print(self)
             pygame.display.update()
 
-class Turno():
+
+class Turno(pygame.sprite.Sprite):
 
     def __init__(self,player):
 
@@ -391,7 +406,10 @@ class Turno():
     def minhaVez(self):
         return (False == (self.turn%2 + self.player%2 +self.partida%2)%2)
 
-    def draw(self,update=False):
+    def final(self):
+        return self.turn == MAX_TURN - 1
+
+    def draw(self, update=False):
         
         SCREEN.blit(IMAGES_INFO[self.boxImg],self.boxRect)
 
@@ -406,8 +424,9 @@ class Turno():
         if update:
             pygame.display.update()
 
+
 class Cliente:
-    def __init__(self):
+    def __init__(self, splash_screen):
 
         #fazendo a conexão com o servidor
         if not MODO_OFFLINE:
@@ -426,7 +445,7 @@ class Cliente:
 
         print('\nSou o player {}\n'.format(self.num))
 
-        if WAIT:
+        if splash_screen:
             pygame.time.delay(2000)
 
         SCREEN.fill([220,220,220])
@@ -458,12 +477,11 @@ class Cliente:
 
  
     def run(self):
+        self.estado = 'inicial'
 
         #loop principal do Player
-        while True:
-
-            #condicao para esperar sua jogada
-            self.estado = 'inicial'
+        while (self.estado != 'terminal'
+               and self.estado != 'quitou'):
 
             #dados recebidos do servidor
             turno = self.request_turn()
@@ -480,12 +498,12 @@ class Cliente:
             for j in range(len(tabuleiro)):
                 tabuleiro[j] = tabuleiro[j].split()
                 for i in range(len(tabuleiro[j])):
-                    self.board.casas[(i,j)]['cor'] = (cores[tabuleiro[j][i]])
+                    self.board[i, j]['cor'] = cores[tabuleiro[j][i]]
             self.board.draw(self.screen)
 
             #atualizando os samurais e colocando eles no tabuleiro
             for samurai in self.samurais:
-                x, y, order_status, hidden, treatment = turno[samurai.num+1].split()
+                x, y, order_status, hidden, treatment = turno[samurai.num + 1].split()
                 samurai.update(self.board, x, y, order_status, hidden, treatment)
 
             #atualizando o botao que escolhe o samurai com indicador se ele pode jogar
@@ -498,7 +516,8 @@ class Cliente:
             if self.turn.minhaVez():
                 print('Minha vez\n')
                 #enquanto não tiver jogado, repetir o loop
-                while self.estado != 'enviar_comandos':
+                while (self.estado != 'enviar_comandos'
+                       and self.estado != 'quitou'):
                     for event in pygame.event.get():
                         #cada cada clique do mouse:
                         if event.type == pygame.MOUSEBUTTONDOWN:
@@ -531,10 +550,27 @@ class Cliente:
                             pygame.quit()
                             if not MODO_OFFLINE:
                                 self.sock.close()
+                            self.estado = 'quitou'
 
                 #envia os comandos para o server se não estiver no MODO_OFFLINE
-                if not MODO_OFFLINE:
-                    self.sock.sendall(bytes(' '.join(self.orderList.order), 'ascii'))
+                if self.estado == 'enviar_comandos':
+                    if not MODO_OFFLINE:
+                        self.sock.send(bytes(' '.join(self.orderList.order), 'ascii'))
+
+                    #condicao para esperar sua jogada
+                    self.estado = 'aguardo'
+
+            if self.turn.final():
+                # verifica se é final de partida
+                # caso positivo, espera o placar
+                score_p1, score_p2 = str(self.sock.recv(1024), 'ascii').split()
+                print('Scores:')
+                print('Player 1:', score_p1)
+                print('Player 2:', score_p2)
+                print()
+                self.sock.send(bytes('ok', 'ascii'))
+                if self.turn.partida == 2:
+                    self.estado = 'terminal'
 
     def request_turn(self):
         print('Aguardando envio de informações de turno por parte do Game Manager...\n')
@@ -549,5 +585,4 @@ class Cliente:
 
         return turno
 
-Cliente().run()
-
+Cliente(splash_screen=SPLASH_SCREEN).run()

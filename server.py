@@ -1,3 +1,11 @@
+##################################################################
+##                                                              ##
+##      CODIGO CRIADO PELO GRUPO TURING - POLI USP 2016         ##
+##      https://www.facebook.com/grupoturing.poliusp            ##
+##      Todos podem usar este codigo livremente                 ##
+##                                                              ##
+##################################################################
+
 import socket
 import json
 
@@ -34,7 +42,6 @@ class Server:
             print('enviei1\n'+turn_msg)
         elif player == 2:
             self.sock_player2.send(bytes(turn_msg, 'ascii'))
-
             print('enviei2\n'+turn_msg)
         else:
             print('player', player, 'não existe')
@@ -52,6 +59,21 @@ class Server:
         else:
             print('player', player, 'não existe')
         return comandos
+
+    def send_scores(self, score_p1, score_p2):
+        msg = '{} {}'.format(score_p1, score_p2)
+        print('Placar enviado:', msg)
+        self.sock_player1.send(bytes(msg, 'ascii'))
+        self.sock_player2.send(bytes(msg, 'ascii'))
+        r1 = str(self.sock_player1.recv(1024), 'ascii')
+        print('Player 1 respondeu:', r1)
+        r2 = str(self.sock_player2.recv(1024), 'ascii')
+        print('Player 2 respondeu:', r2)
+        if (r1 == 'ok'
+            and r2 == 'ok'):
+                print('ambos receberam placar')
+        else:
+            print('algo deu errado na transmissão do placar')
 
     def fechar_conexoes(self):
         self.sock_player1.close()
