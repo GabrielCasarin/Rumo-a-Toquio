@@ -6,9 +6,15 @@
 ##                                                              ##
 ##################################################################
 
+import json
 from server import Server
-
 from util import distancia
+
+
+with open('config/config.json') as jfile:
+    config = json.load(jfile)
+    MAX_TURN = config['max_turn']
+
 
 class Game:
     #criar tabuleiro:
@@ -45,7 +51,7 @@ class Game:
     def update(self):
         pass
 
-    def view(self,player):
+    def view(self, player):
 
         '''Fornece todas as informações do jogo de um determinado turno para o player
         
@@ -144,7 +150,7 @@ class Game:
                     for i in range(len(self.p1.samurais)):
                         x2 = self.p1.samurais[i].pos[0]
                         y2 = self.p1.samurais[i].pos[1]
-                        if distancia(x1,x2,y1,y2)<=5:
+                        if distancia(x1,x2,y1,y2) <= 5:
                             newTab[y1][x1] = self.tab[y1][x1]
 
         if player == 2:
@@ -153,7 +159,7 @@ class Game:
                     for i in range(len(self.p2.samurais)):
                         x2 = self.p2.samurais[i].pos[0]
                         y2 = self.p2.samurais[i].pos[1]
-                        if distancia(x1,x2,y1,y2)<=5:
+                        if distancia(x1,x2,y1,y2) <= 5:
 
                             #Invertendo os samurais para o player2 (0>3,1>4,2>5,3>0,4>1,5>2)
                             if self.tab[y1][x1] < 3: #0>3,1>4,2>5
@@ -173,7 +179,7 @@ class Game:
 
         s = sT + sS + sM
         
-        return(s)
+        return s
 
     def clearOrderStat(self):
         for samurai1 in self.p1.samurais:
@@ -181,8 +187,7 @@ class Game:
         for samurai2 in self.p2.samurais:
             samurai2.orderStat = 0
 
-    def score(self,player):
-
+    def score(self, player):
         count = 0
         if player == 1:
             for linha in self.tab:
@@ -199,7 +204,7 @@ class Game:
         return count
                        
 class Jogador:
-    def __init__(self,player):
+    def __init__(self, player):
         
         # samurais = []
         # if player == 1:
@@ -239,8 +244,6 @@ class Jogador:
         else:
             samurai.orderStat = 1
 
-        samurai.orderStat
-
         while comando and cont:
             acao = int(comando.pop(0))
             if acao in [i for i in range(10)]:
@@ -249,6 +252,7 @@ class Jogador:
             else: 
                 cont = False
                 print('Order invalida')
+
 
 class Samurai:
     #def __init__(self,weaponID,x,y):
@@ -430,9 +434,6 @@ class Samurai:
                         if samurai1.pos == atkArea[i]:
                             print('Samurai machucado')
                             samurai1.injury()
-
-
- 
         return True    
 
     def hide(self, game):
@@ -462,6 +463,7 @@ class Samurai:
         self.hideStat = 1-self.hideStat
         return True
 
+
 def main():
 
     score1 = 0
@@ -473,12 +475,12 @@ def main():
     #partida1:
     game = Game()
 
-    while game.turn < 96:
+    while game.turn < MAX_TURN:
 
-        server.send_turn(1,game.view(1))
-        server.send_turn(2,game.view(2))
+        server.send_turn(1, game.view(1))
+        server.send_turn(2, game.view(2))
 
-        turno_player = game.turn%2+1
+        turno_player = game.turn%2 + 1
         print('Turno {}: player {}'.format(game.turn, turno_player))
 
         comando = server.recv_comandos(turno_player)
@@ -495,13 +497,14 @@ def main():
     score1 += game.score(1)
     score2 += game.score(2)
 
+    server.send_scores(score1, score2)
 
     #partida2:
     game.__init__()
 
     # game.p1, game.p2 = game.p2, game.p1
 
-    while game.turn < 96:
+    while game.turn < MAX_TURN:
         server.send_turn(1,game.view(1))
         server.send_turn(2,game.view(2))
 
@@ -521,15 +524,7 @@ def main():
 
     score1 += game.score(1)
     score2 += game.score(2)
+    
+    server.send_scores(score1, score2)
 
 main()
-# g = Game()
-# #print(g.tab)
-# # print(g.view(1))
-# # g.p1.order('0 1 5 9',g)
-# # print(g.view(2))
-# # g.p1.order('0 1 5 9',g)
-# print(g.tab)
-# print(g.view(2))
-# g.p2.order('0 3 8 9',g)
-# print(g.tab)
