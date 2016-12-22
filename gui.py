@@ -474,11 +474,6 @@ class Cliente:
 
         #definindo o botão que escolhe o samurai
         self.buttonSamurai = ButtonSamurai()
-
-        #atualizando o botao que escolhe o samurai com indicador se ele pode jogar
-        #samurai = self.samurais[self.buttonSamurai.num]
-        #self.buttonSamurai.draw(samurai)
-
  
     def run(self):
         self.estado = 'inicial'
@@ -489,6 +484,7 @@ class Cliente:
 
             #dados recebidos do servidor
             turno = self.request_turn()
+            pygame.event.clear()
 
             #atualizando o turno atual
             self.turn.setTurn(int(turno[0]))

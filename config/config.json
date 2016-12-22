@@ -1,5 +1,5 @@
 {
-    "ip": "127.0.0.1",
+    "ip": "25.95.24.90",
     "port": 12345,
     "cores": {
         "0": [60 ,120,255],
@@ -31,5 +31,5 @@
                 "Turno"
     ],
     "max_turn": 96,
-    "Distancia_visao": 8
+    "Distancia_visao": 5
 }
