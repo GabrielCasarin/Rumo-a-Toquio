@@ -225,11 +225,13 @@ class Jogador:
         ID = int(comando.pop(0))
         if ID in [0,1,2]:
             samurai = self.samurais[ID]
-        elif ID not in [0,1,2]: 
+        else: 
             msg = 'Id do samurai invalido, perdeu a vez'
+
         if samurai.treat > 0: #se esta machucado nao joga
             msg = 'Samurai machucado não joga'
             cont = False
+
         if samurai.orderStat == 1: #se ja jogou, nao joga
             msg = 'Samurai já jogou nesse período'
             cont = False
@@ -311,24 +313,22 @@ class Samurai:
         self.treat = 18 + 1
 
     def action(self,game,acao,budget): 
-
-
         if acao == 0:
             cont = False
             custo = 0
             msg = 'Jogada validaa'
-        elif acao < 5:
+        elif 1 <= acao <= 4:
             if budget >= 4:
                 cont, msg = self.occupy(game,acao)
-                custo = 4
-        elif acao < 9:
+            custo = 4
+        elif 5 <= acao <= 8:
             if budget >= 2:
                 cont, msg = self.move(game,acao)
-                custo = 2
+            custo = 2
         elif acao == 9:
             if budget >= 1:
                 cont, msg = self.hide(game)
-                custo = 1
+            custo = 1
 
         return cont, custo, msg
 
@@ -464,7 +464,7 @@ class Samurai:
                     return False, 'Samurai não pode aparecer onde já tem um samurai aparecendo'
 
         #Switching state
-        self.hideStat = 1-self.hideStat
+        self.hideStat = 1 - self.hideStat
         return True, 'Jogada válida'
 
 
@@ -519,3 +519,4 @@ def main():
         server.send_scores(score1, score2)
 
 main()
+
