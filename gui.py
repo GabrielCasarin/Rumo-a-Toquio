@@ -8,6 +8,7 @@
 
 import json
 import socket
+import select
 import pygame
 pygame.init()
 
@@ -141,7 +142,7 @@ class Samurai(pygame.sprite.Sprite):
         SCREEN.blit(texto, (centerStat[0]+80,centerStat[1]-19))
 
         #status: verde = pode jogar, azul = ja jogou, vermelho = machucado (vermelho tem preferencia em azul)
-        if self.treatment>0:
+        if self.treatment > 0:
             infoImg = IMAGES_INFO['Red']
         elif self.order_status == 1:
             infoImg = IMAGES_INFO['Blue']
@@ -194,7 +195,6 @@ class ButtonSamurai(pygame.sprite.Sprite):
         self.img2 = 'Blue-battleaxe'
         self.samRect = IMAGES[self.img0].get_rect(center=self.center)
 
-    # def draw(self,enable,update=True):
     def draw(self,samurai,update=True):
         
         #box
@@ -335,7 +335,7 @@ class OrderList(pygame.sprite.Sprite):
         self.draw()
 
     def popO(self):
-        if len(self.order)>1:
+        if len(self.order) > 1:
             self.order.pop()
             self.draw()
 
@@ -442,7 +442,7 @@ class Cliente:
 
                 #definindo se o player é o Player 1 ou o Player 2
                 #Apesar de receber 0 ou 1, se converte para 1 ou 2 para ficar mais intuitivo            
-                self.num = int(str(self.sock.recv(1), 'ascii'))+1
+                self.num = int(str(self.sock.recv(1), 'ascii')) + 1
         else:
             #definindo se o player é o Player 1 ou o Player 2
             self.num = 1
@@ -478,84 +478,99 @@ class Cliente:
     def run(self):
         self.estado = 'inicial'
 
+        if MODO_OFFLINE:
+            readable = ['', '']
+
         #loop principal do Player
         while (self.estado != 'terminal'
                and self.estado != 'quitou'):
 
-            #dados recebidos do servidor
-            turno = self.request_turn()
-            pygame.event.clear()
+            if not MODO_OFFLINE:
+                # verifica se há dados do turno disponíveis para leitura advindos do servidor
+                readable, _, _ = select.select([self.sock], [], [], 0)
+            else: # else feito para o modo offline continuar funcionando
+                if readable:
+                    readable.pop()
 
-            #atualizando o turno atual
-            self.turn.setTurn(int(turno[0]))
+            if readable:
+                #dados recebidos do servidor
+                turno = self.request_turn()
 
-            #atualizando a lista de acoes
-            self.orderList.clear()
-            self.orderList.setSamurai(str(self.buttonSamurai.num))
-         
-            #atualizando o tabuleiro
-            tabuleiro = turno[7:25]
-            for j in range(len(tabuleiro)):
-                tabuleiro[j] = tabuleiro[j].split()
-                for i in range(len(tabuleiro[j])):
-                    self.board[i, j]['cor'] = cores[tabuleiro[j][i]]
-            self.board.draw(self.screen)
+                #atualizando o turno atual
+                self.turn.setTurn(int(turno[0]))
 
-            #atualizando os samurais e colocando eles no tabuleiro
-            for samurai in self.samurais:
-                x, y, order_status, hidden, treatment = turno[samurai.num + 1].split()
-                samurai.update(self.board, x, y, order_status, hidden, treatment)
+                #atualizando a lista de acoes
+                # self.orderList.clear()
+                self.orderList.setSamurai(str(self.buttonSamurai.num))
+             
+                #atualizando o tabuleiro
+                tabuleiro = turno[7:25]
+                for j in range(len(tabuleiro)):
+                    tabuleiro[j] = tabuleiro[j].split()
+                    for i in range(len(tabuleiro[j])):
+                        self.board[i, j]['cor'] = cores[tabuleiro[j][i]]
+                self.board.draw(self.screen)
 
-            #atualizando o botao que escolhe o samurai com indicador se ele pode jogar
-            samurai = self.samurais[self.buttonSamurai.num]
-            self.buttonSamurai.draw(samurai)
+                #atualizando os samurais e colocando eles no tabuleiro
+                for samurai in self.samurais:
+                    x, y, order_status, hidden, treatment = turno[samurai.num + 1].split()
+                    samurai.update(self.board, x, y, order_status, hidden, treatment)
 
-            pygame.display.update()
+                #atualizando o botao que escolhe o samurai com indicador se ele pode jogar
+                samurai = self.samurais[self.buttonSamurai.num]
+                self.buttonSamurai.draw(samurai)
 
-            #decisão se é minha vez de jogar ou esperar
-            if self.turn.minhaVez():
-                print('Minha vez\n')
-                #enquanto não tiver jogado, repetir o loop
-                while (self.estado != 'enviar_comandos'
-                       and self.estado != 'quitou'):
-                    for event in pygame.event.get():
-                        #cada cada clique do mouse:
-                        if event.type == pygame.MOUSEBUTTONDOWN:
-                            #verifica se foi clicado no escolhedor de samurai
-                            if self.buttonSamurai.boxRect.collidepoint(event.pos):
-                                self.buttonSamurai.num = (self.buttonSamurai.num+1)%3
-                                self.orderList.setSamurai(str(self.buttonSamurai.num))
+                pygame.display.update()
 
-                                samurai = self.samurais[self.buttonSamurai.num]
-                                self.buttonSamurai.draw(samurai)
+                if self.turn.minhaVez():
+                    print('Minha vez\n')
 
-                            #verifica se foi clicado em alguma das acoes   
-                            for i in range(len(self.acoes)):
-                                if self.acoes[i].rect.collidepoint(event.pos):
-                                    #se foi clicado em cancel, apagar ultima ação
-                                    if i == 10:
-                                        self.orderList.popO()
+            for event in pygame.event.get():
+                #cada cada clique do mouse:
+                if event.type == pygame.MOUSEBUTTONDOWN:
+                    #verifica se foi clicado no escolhedor de samurai
+                    if self.buttonSamurai.boxRect.collidepoint(event.pos):
+                        self.buttonSamurai.num = (self.buttonSamurai.num+1)%3
+                        self.orderList.setSamurai(str(self.buttonSamurai.num))
 
-                                    #se foi clicado em outra ação, adicionar ação
+                        samurai = self.samurais[self.buttonSamurai.num]
+                        self.buttonSamurai.draw(samurai)
+
+                    #verifica se foi clicado em alguma das acoes   
+                    for i in range(len(self.acoes)):
+                        if self.acoes[i].rect.collidepoint(event.pos):
+                            #se foi clicado em cancel, apagar ultima ação
+                            if i == 10:
+                                self.orderList.popO()
+
+                            #se foi clicado em outra ação, adicionar ação
+                            else:
+                                self.orderList.appendO(str(i))
+                                #condicao para finalizar jogada
+                                if i == 0:
+                                    #decisão se é minha vez de jogar ou esperar
+                                    if self.turn.minhaVez():
+                                        self.estado = 'enviar_comandos'
+                                        if PRINT_DADOS:
+                                            print ('Comandos enviados:\n{}\n'.format(' '.join(self.orderList.order)))
                                     else:
-                                        self.orderList.appendO(str(i))
-                                        #condicao para finalizar jogada
-                                        if i == 0:
-                                            self.estado = 'enviar_comandos'
-                                            if PRINT_DADOS:
-                                                print ('Comandos enviados:\n{}\n'.format(' '.join(self.orderList.order)))
+                                        self.orderList.popO()
+                                        print('Espere o seu turno para jogar!\n')
 
-                        #condicao de parada forçada
-                        elif event.type == pygame.QUIT:
-                            pygame.quit()
-                            if not MODO_OFFLINE:
-                                self.sock.close()
-                            self.estado = 'quitou'
+                #condicao de parada forçada
+                elif event.type == pygame.QUIT:
+                    pygame.quit()
+                    if not MODO_OFFLINE:
+                        self.sock.close()
+                    self.estado = 'quitou'
 
                 #envia os comandos para o server se não estiver no MODO_OFFLINE
                 if self.estado == 'enviar_comandos':
+                    self.orderList.clear()
                     if not MODO_OFFLINE:
                         self.sock.send(bytes(' '.join(self.orderList.order), 'ascii'))
+                    else:
+                        pygame.display.update()
 
                     #condicao para esperar sua jogada
                     self.estado = 'aguardo'
@@ -578,6 +593,7 @@ class Cliente:
             turno = str(self.sock.recv(1024), "ascii").split('\n')
         else:
             turno = open('info.txt').read().split('\n')
+
         if PRINT_DADOS:
             print('Dados recebidos:\n {}\n'.format(turno))
         else:
