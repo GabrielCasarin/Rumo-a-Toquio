@@ -12,7 +12,7 @@ import select
 import pygame
 pygame.init()
 
-PRINT_DADOS = False
+PRINT_DADOS = True
 
 with open('config/config.json') as jfile:
     config = json.load(jfile)
@@ -566,10 +566,12 @@ class Cliente:
 
                 #envia os comandos para o server se não estiver no MODO_OFFLINE
                 if self.estado == 'enviar_comandos':
-                    self.orderList.clear()
                     if not MODO_OFFLINE:
                         self.sock.send(bytes(' '.join(self.orderList.order), 'ascii'))
-                    else:
+                    
+                    self.orderList.clear()
+
+                    if MODO_OFFLINE:
                         pygame.display.update()
 
                     #condicao para esperar sua jogada

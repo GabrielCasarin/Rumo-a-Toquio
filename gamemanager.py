@@ -240,18 +240,18 @@ class Jogador:
 
         while comando and cont:
             acao = int(comando.pop(0))
-            if acao in [i for i in range(10)]:
+            if acao in range(10):
                 cont, custo, msg = samurai.action(game,acao,budget)
-                #msg = "temporario"
                 budget -= custo
             else: 
                 cont = False
                 msg = 'Codigo de acao invalido'
 
-        return(msg)
+        print(msg)
+
+        return msg
 
 class Samurai:
-    #def __init__(self,weaponID,x,y):
     def __init__(self,num):
 
         #Home position
