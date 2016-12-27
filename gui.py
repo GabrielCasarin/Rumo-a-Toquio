@@ -23,6 +23,10 @@ with open('config/config.json') as jfile:
     MODO_OFFLINE = config['modo_offline']
     MAX_TURN = config['max_turn']
     SPLASH_SCREEN = config['splash_screen']
+    COMENTARIO = config['comentario']
+
+pygame.display.set_icon(pygame.image.load("images/SamurAI-Images/Icon.png"))
+pygame.display.set_caption('Samurai3x3')
 
 SCREEN      = pygame.display.set_mode((800,600))
 
@@ -42,11 +46,11 @@ IMAGES_INFO = {
                 }
 
 
+myfont = pygame.font.SysFont("arial", 15)
+
 bg = pygame.image.load("images/background.png")
 bgrect = bg.get_rect()
 SCREEN.blit(bg,bgrect)
-
-myfont = pygame.font.SysFont("arial", 15)
 
 pygame.display.update()
 
@@ -440,9 +444,18 @@ class Cliente:
                 config = json.load(jfile)
                 self.sock.connect((config["ip"], config["port"]))
 
-                #definindo se o player é o Player 1 ou o Player 2
-                #Apesar de receber 0 ou 1, se converte para 1 ou 2 para ficar mais intuitivo            
-                self.num = int(str(self.sock.recv(1), 'ascii')) + 1
+            #definindo se o player é o Player 1 ou o Player 2
+            #Apesar de receber 0 ou 1, se converte para 1 ou 2 para ficar mais intuitivo            
+            #self.num = int(str(self.sock.recv(1), 'ascii')) + 1
+
+            self.num = ''
+            while not self.num:
+                for event in pygame.event.get():
+                    if event.type == pygame.QUIT:
+                        pygame.quit()
+                ready, _, _ = select.select([self.sock], [], [], 0)
+                if ready:
+                    self.num = int(str(self.sock.recv(1), 'ascii')) + 1
         else:
             #definindo se o player é o Player 1 ou o Player 2
             self.num = 1
@@ -474,6 +487,7 @@ class Cliente:
 
         #definindo o botão que escolhe o samurai
         self.buttonSamurai = ButtonSamurai()
+
  
     def run(self):
         self.estado = 'inicial'
@@ -504,7 +518,7 @@ class Cliente:
                 self.orderList.setSamurai(str(self.buttonSamurai.num))
              
                 #atualizando o tabuleiro
-                tabuleiro = turno[7:25]
+                tabuleiro = turno[7:22]
                 for j in range(len(tabuleiro)):
                     tabuleiro[j] = tabuleiro[j].split()
                     for i in range(len(tabuleiro[j])):
@@ -519,6 +533,10 @@ class Cliente:
                 #atualizando o botao que escolhe o samurai com indicador se ele pode jogar
                 samurai = self.samurais[self.buttonSamurai.num]
                 self.buttonSamurai.draw(samurai)
+
+                if COMENTARIO:
+                    coment = turno[22]
+                    print(coment)
 
                 pygame.display.update()
 
@@ -557,12 +575,15 @@ class Cliente:
                                         self.orderList.popO()
                                         print('Espere o seu turno para jogar!\n')
 
+
+
                 #condicao de parada forçada
                 elif event.type == pygame.QUIT:
                     pygame.quit()
                     if not MODO_OFFLINE:
                         self.sock.close()
                     self.estado = 'quitou'
+
 
                 #envia os comandos para o server se não estiver no MODO_OFFLINE
                 if self.estado == 'enviar_comandos':
@@ -588,6 +609,7 @@ class Cliente:
                 self.sock.send(bytes('ok', 'ascii'))
                 if self.turn.partida == 2:
                     self.estado = 'terminal'
+
 
     def request_turn(self):
         print('Aguardando envio de informações de turno por parte do Game Manager...\n')

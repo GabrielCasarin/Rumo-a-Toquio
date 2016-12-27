@@ -1,5 +1,5 @@
 {
-    "ip": "25.95.24.90",
+    "ip": "127.0.0.1",
     "port": 12345,
     "cores": {
         "0": [60 ,120,255],
@@ -11,11 +11,14 @@
         "8": [200,200,200],
         "9": [20 ,20 ,20 ]
     },
-    "splash_screen": true,
+    "splash_screen": false,
     "modo_offline": false,
+    "comentario": true,
+
     "IMG_SamurAI-Images": [
                 "Blue-battleaxe",          "Blue-sword",             "Red-spear",
-                "Blue-spear",              "Red-battleaxe",          "Red-sword"
+                "Blue-spear",              "Red-battleaxe",          "Red-sword",
+                "Icon"
             ],
     "IMG_buttons-Images": [                
                 "Send",
