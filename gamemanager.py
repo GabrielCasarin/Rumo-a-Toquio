@@ -531,4 +531,3 @@ def main():
         server.send_scores(score1, score2)
 
 main()
-
