@@ -13,7 +13,7 @@
     },
     "splash_screen": false,
     "modo_offline": false,
-    "comentario": true,
+    "comentario": false,
 
     "IMG_SamurAI-Images": [
                 "Blue-battleaxe",          "Blue-sword",             "Red-spear",
@@ -33,6 +33,6 @@
                 "Green",                   "Hidden",                 "Red",           "Blue",
                 "Turno"
     ],
-    "max_turn": 96,
+    "max_turn": 6,
     "Distancia_visao": 5
 }

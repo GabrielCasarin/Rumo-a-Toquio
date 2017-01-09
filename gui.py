@@ -412,7 +412,7 @@ class Turno(pygame.sprite.Sprite):
         self.draw()
 
     def minhaVez(self):
-        return (False == (self.turn%2 + self.player%2 +self.partida%2)%2)
+        return (not(self.turn%2 + self.player%2 +self.partida%2)%2)
 
     def final(self):
         return self.turn == MAX_TURN - 1
@@ -490,8 +490,9 @@ class Cliente:
 
  
     def run(self):
-        self.estado = 'inicial'
 
+        self.estado = ''
+        
         if MODO_OFFLINE:
             readable = ['', '']
 
@@ -507,6 +508,7 @@ class Cliente:
                     readable.pop()
 
             if readable:
+
                 #dados recebidos do servidor
                 turno = self.request_turn()
 
@@ -542,6 +544,10 @@ class Cliente:
 
                 if self.turn.minhaVez():
                     print('Minha vez\n')
+                    self.estado = 'meu turno'
+                else:
+                    self.estado = 'turno adversario'
+
 
             for event in pygame.event.get():
                 #cada cada clique do mouse:
@@ -568,14 +574,23 @@ class Cliente:
                                 if i == 0:
                                     #decisão se é minha vez de jogar ou esperar
                                     if self.turn.minhaVez():
-                                        self.estado = 'enviar_comandos'
+                                        if not MODO_OFFLINE:
+                                            self.sock.send(bytes(' '.join(self.orderList.order), 'ascii'))
+                                        
+                                        self.orderList.clear()
+
+                                        if MODO_OFFLINE:
+                                            pygame.display.update()
+                                       
                                         if PRINT_DADOS:
                                             print ('Comandos enviados:\n{}\n'.format(' '.join(self.orderList.order)))
+
+                                        #condicao para esperar sua jogada
+                                        self.estado = 'jogada concluida'
+
                                     else:
                                         self.orderList.popO()
                                         print('Espere o seu turno para jogar!\n')
-
-
 
                 #condicao de parada forçada
                 elif event.type == pygame.QUIT:
@@ -584,21 +599,7 @@ class Cliente:
                         self.sock.close()
                     self.estado = 'quitou'
 
-
-                #envia os comandos para o server se não estiver no MODO_OFFLINE
-                if self.estado == 'enviar_comandos':
-                    if not MODO_OFFLINE:
-                        self.sock.send(bytes(' '.join(self.orderList.order), 'ascii'))
-                    
-                    self.orderList.clear()
-
-                    if MODO_OFFLINE:
-                        pygame.display.update()
-
-                    #condicao para esperar sua jogada
-                    self.estado = 'aguardo'
-
-            if self.turn.final():
+            if (self.turn.final() and self.estado == 'jogada concluida') or (self.turn.final() and self.estado == 'turno adversario'):
                 # verifica se é final de partida
                 # caso positivo, espera o placar
                 score_p1, score_p2 = str(self.sock.recv(1024), 'ascii').split()
@@ -609,7 +610,6 @@ class Cliente:
                 self.sock.send(bytes('ok', 'ascii'))
                 if self.turn.partida == 2:
                     self.estado = 'terminal'
-
 
     def request_turn(self):
         print('Aguardando envio de informações de turno por parte do Game Manager...\n')
