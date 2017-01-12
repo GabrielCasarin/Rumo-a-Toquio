@@ -91,7 +91,7 @@ class Game:
                 sS += str(samurai1.pos[1]) + ' '#y
                 sS += str(samurai1.orderStat) + ' '#orderstatus
                 sS += str(samurai1.hideStat) + ' '#showingstatus
-                sS += str(samurai1.treat)#treatmentturns
+                sS += str(samurai1.treat)  #treatmentturns
             for samurai2 in self.p2.samurais:
 
                 vendo = False
@@ -141,6 +141,40 @@ class Game:
                     sS += "1 "
                     sS += str(samurai1.treat)#treatmentturns
 
+        elif player == -1:
+            for samurai1 in self.p1.samurais:
+                sS += '\n'
+                sS += str(samurai1.pos[0]) + ' '#x
+                sS += str(samurai1.pos[1]) + ' '#y
+                sS += str(samurai1.orderStat) + ' '#orderstatus
+                sS += str(samurai1.hideStat) + ' '#showingstatus
+                sS += str(samurai1.treat) #treatmentturns
+            for samurai2 in self.p2.samurais:
+                vendo = True
+                sS += '\n'
+                sS += str(samurai2.pos[0]) + ' '#x
+                sS += str(samurai2.pos[1]) + ' '#y
+                sS += str(samurai2.orderStat) + ' '#orderstatus
+                sS += str(samurai2.hideStat) + ' '#showingstatus
+                sS += str(samurai2.treat)#treatmentturns
+
+        elif player == -2:
+            for samurai2 in self.p2.samurais:
+                sS += '\n'
+                sS += str(samurai2.pos[0]) + ' '#x
+                sS += str(samurai2.pos[1]) + ' '#y
+                sS += str(samurai2.orderStat) + ' '#orderstatus
+                sS += str(samurai2.hideStat) + ' '#showingstatus
+                sS += str(samurai2.treat) #treatmentturns
+            for samurai1 in self.p1.samurais:
+                vendo = True
+                sS += '\n'
+                sS += str(samurai1.pos[0]) + ' '#x
+                sS += str(samurai1.pos[1]) + ' '#y
+                sS += str(samurai1.orderStat) + ' '#orderstatus
+                sS += str(samurai1.hideStat) + ' '#showingstatus
+                sS += str(samurai1.treat)#treatmentturns
+
         size = self.size
         row = size*[9]
         newTab = []
@@ -171,6 +205,20 @@ class Game:
                                 newTab[y1][x1] = self.tab[y1][x1]-3
                             else:
                                 newTab[y1][x1] = self.tab[y1][x1]
+        if player == -1:
+            for y1 in range (size):
+                for x1 in range (size):
+                    newTab[y1][x1] = self.tab[y1][x1]
+
+        if player == -2:
+            for y1 in range (size):
+                for x1 in range (size):
+                    if self.tab[y1][x1] < 3: #0>3,1>4,2>5
+                        newTab[y1][x1] = self.tab[y1][x1]+3
+                    elif self.tab[y1][x1] < 6: #3>0,4>1,5>2
+                        newTab[y1][x1] = self.tab[y1][x1]-3
+                    else:
+                        newTab[y1][x1] = self.tab[y1][x1]
 
         #string do tabuleiro(Mapa)
         sM =''
