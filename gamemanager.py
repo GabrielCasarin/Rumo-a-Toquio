@@ -16,6 +16,7 @@ with open('config/config.json') as jfile:
     MAX_TURN = config['max_turn']
     DIST_VISAO = config['Distancia_visao']
     COMENTARIO = config['comentario']
+    SIZE = config['size']
 
 
 class Game:
@@ -26,7 +27,7 @@ class Game:
         self.turn = 0
 
         #definindo o Tabuleiro
-        size = 15
+        size = SIZE
         self.size = size
         row = size*[8]
         tabuleiro = []
@@ -56,7 +57,7 @@ class Game:
     def view(self, player):
 
         '''Fornece todas as informações do jogo de um determinado turno para o player
-        
+
         player = 1: Jogador 1
         player = 2: Jogador 2
 
@@ -76,7 +77,7 @@ class Game:
         A A A A A A A A...
         . . . . . . . . (15x15)
 
-        '''      
+        '''
 
         #string do turno
         sT = str(self.turn)
@@ -92,7 +93,7 @@ class Game:
                 sS += str(samurai1.hideStat) + ' '#showingstatus
                 sS += str(samurai1.treat)#treatmentturns
             for samurai2 in self.p2.samurais:
-                
+
                 vendo = False
                 for samurai1 in self.p1.samurais:
                     if distancia(samurai1.pos[0],samurai2.pos[0],samurai1.pos[1],samurai2.pos[1])<=DIST_VISAO and samurai2.hideStat == 0:
@@ -119,7 +120,7 @@ class Game:
                 sS += str(samurai2.pos[1]) + ' '#y
                 sS += str(samurai2.orderStat) + ' '#orderstatus
                 sS += str(samurai2.hideStat) + ' '#showingstatus
-                sS += str(samurai2.treat) #treatmentturns             
+                sS += str(samurai2.treat) #treatmentturns
             for samurai1 in self.p1.samurais:
                 vendo = False
                 for samurai2 in self.p2.samurais:
@@ -170,8 +171,8 @@ class Game:
                                 newTab[y1][x1] = self.tab[y1][x1]-3
                             else:
                                 newTab[y1][x1] = self.tab[y1][x1]
-        
-        #string do tabuleiro(Mapa)                    
+
+        #string do tabuleiro(Mapa)
         sM =''
         for y in range(len(newTab)):
             sM += '\n'
@@ -180,7 +181,7 @@ class Game:
             sM += str(newTab[y][size-1])
 
         s = sT + sS + sM
-        
+
         return s
 
     def clearOrderStat(self):
@@ -205,15 +206,15 @@ class Game:
                     if casa in [3, 4, 5]:
                         count += 1
         return count
-                       
+
 
 class Jogador:
     def __init__(self, player):
-   
+
         if player == 1:
             self.samurais = [Samurai(i) for i in range(0,3)]
         elif player == 2:
-            self.samurais = [Samurai(i) for i in range(3,6)]  
+            self.samurais = [Samurai(i) for i in range(3,6)]
 
     def order(self, comando, game):
         budget = 7
@@ -226,7 +227,7 @@ class Jogador:
         ID = int(comando.pop(0))
         if ID in [0,1,2]:
             samurai = self.samurais[ID]
-        else: 
+        else:
             msg = 'Id do samurai invalido, perdeu a vez'
 
         if samurai.treat > 0: #se esta machucado nao joga
@@ -244,7 +245,7 @@ class Jogador:
             if acao in range(10):
                 cont, custo, msg = samurai.action(game,acao,budget)
                 budget -= custo
-            else: 
+            else:
                 cont = False
                 msg = 'Codigo de acao invalido'
 
@@ -256,22 +257,24 @@ class Samurai:
     def __init__(self,num):
 
         #Home position
+        delta = SIZE//2
+
         if num == 0:
             self.home = [ 0, 0]
         elif num == 1:
-            self.home = [ 0, 7]
+            self.home = [ 0, delta]
         elif num == 2:
-            self.home = [ 7, 0]
+            self.home = [ delta, 0]
         elif num == 3:
-            self.home = [14,14]
+            self.home = [SIZE-1,SIZE-1]
         elif num == 4:
-            self.home = [14, 7]
+            self.home = [SIZE-1, SIZE-1-delta]
         elif num == 5:
-            self.home = [ 7,14]
+            self.home = [SIZE-1-delta, SIZE-1]
 
         #Weapon
         self.id = num%3
-        
+
         #Player
         self.player = num//3 + 1
 
@@ -294,13 +297,13 @@ class Samurai:
 
         s = '\nSamurai:'
         if self.id%3 == 0:
-            s += '  - Spear' 
+            s += '  - Spear'
         if self.id%3 == 1:
-            s += '  - Sword' 
+            s += '  - Sword'
         if self.id%3 == 2:
             s += '  - B.Axe'
         s += '\nid        = {}'.format(self.id)
-        s += '\nhome      = {}'.format(self.home)    
+        s += '\nhome      = {}'.format(self.home)
         s += '\n\npos      = {}'.format(self.pos)
         s += '\norderStat = {}'.format(self.orderStat)
         s += '\nhideStat  = {}'.format(self.hideStat)
@@ -313,7 +316,7 @@ class Samurai:
         self.hideStat = 0
         self.treat = 18 + 1
 
-    def action(self,game,acao,budget): 
+    def action(self,game,acao,budget):
 
         cont = False
         custo = 0
@@ -344,7 +347,7 @@ class Samurai:
         #   - Nao pode ocupar se estiver escondido
 
         #   - Home positions não podem ser ocupadas
-        
+
         if self.hideStat == 1: #Se esta escondido, nao pode ocupar
             return False, 'Samurai escondido nao pode atacar'
 
@@ -371,7 +374,7 @@ class Samurai:
 
 
         for i in range (len(atkArea)):
-            if (atkArea[i][0]>=0 and atkArea[i][0]<=14 and atkArea[i][1]>=0 and atkArea[i][1]<=14): #casa a ser ocupada dentro do tabuleiro
+            if (atkArea[i][0]>=0 and atkArea[i][0]<=SIZE-1 and atkArea[i][1]>=0 and atkArea[i][1]<=SIZE-1): #casa a ser ocupada dentro do tabuleiro
                 if (atkArea[i] not in game.homes): #home position
                     game.tab[atkArea[i][1]][atkArea[i][0]] = self.id +3*self.player-3
 
@@ -386,25 +389,25 @@ class Samurai:
                             if samurai1.pos == atkArea[i]:
                                 print('Samurai machucado')
                                 samurai1.injury()
-        return True, 'Jogada válida'    
+        return True, 'Jogada válida'
 
     def move(self, game, acao):
 
         #Moves to one of the adjacent sections.
 
-        #Condições: 
+        #Condições:
         #   - (1) If the samurai is not hiding itself, it cannot move to a sections in which a non-hiding samurai is in.
-        #   - (2) A samurai hiding itself can only move to a friendly territory section. 
+        #   - (2) A samurai hiding itself can only move to a friendly territory section.
         #   - (3) Whether showing or hiding itself, home positions of other samurai cannot be entered.
 
         #   - (4) Extra (Não falado no Rules): Não sair do tabuleiro
-         
+
         #Intrucoes:
         #The move direction is specified as 5 for southward, 6
         # for eastward, 7 for northward, and 8 for westward
 
         #As condicoes dependem da casa que o samurai quer ir, assim sendo, (x,y) corresponde a casa que se deseja chegar.
-        
+
         if acao == 5: #south
             x = self.pos[0]
             y = self.pos[1] + 1
@@ -452,9 +455,9 @@ class Samurai:
         #Concicoes
         #(1) Hiding is only possible when the samurai is in a friendly territory section.
         #(2) Showing is not possible if there is another non-hiding samurai, either friendly or enemy, in the same section.
-      
+
         #(1) Verifica se está escondendo em território não amigo
-        if self.hideStat == 0:      
+        if self.hideStat == 0:
             if self.player == 1:
                 if game.tab[self.pos[1]][self.pos[0]] not in [0,1,2]:
                     return False, 'Samurai nao pode se esconder em territorio nao amigo'
@@ -495,7 +498,7 @@ def main():
 
         while game.turn < MAX_TURN:
 
-           
+
             if partida == 0:
                 turno_player = game.turn%2 + 1
             elif partida == 1:
@@ -511,7 +514,7 @@ def main():
             print('Turno {}: player {}'.format(game.turn, turno_player))
 
 
-           
+
             comando = server.recv_comandos(turno_player)
 
             if turno_player == 1:
@@ -531,4 +534,3 @@ def main():
         server.send_scores(score1, score2)
 
 main()
-

@@ -1,6 +1,7 @@
 {
     "ip": "127.0.0.1",
     "port": 12345,
+    "size": 7,
     "cores": {
         "0": [60 ,120,255],
         "1": [120,120,255],
@@ -11,7 +12,7 @@
         "8": [200,200,200],
         "9": [20 ,20 ,20 ]
     },
-    "splash_screen": false,
+    "splash_screen": true,
     "modo_offline": false,
     "comentario": false,
 
@@ -20,7 +21,7 @@
                 "Blue-spear",              "Red-battleaxe",          "Red-sword",
                 "Icon"
             ],
-    "IMG_buttons-Images": [                
+    "IMG_buttons-Images": [
                 "Send",
                 "occupy_down",             "occupy_right",           "occupy_up",     "occupy_left",
                 "move_down",               "move_right",             "move_up",       "move_left",

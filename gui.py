@@ -63,23 +63,23 @@ class Samurai(pygame.sprite.Sprite):
         if num == 0:
             self.img_name = "Blue-spear"
             self.image = IMAGES[self.img_name]
-                    
+
         elif num == 1:
             self.img_name = "Blue-sword"
             self.image = IMAGES[self.img_name]
-                    
+
         elif num == 2:
             self.img_name = "Blue-battleaxe"
             self.image = IMAGES[self.img_name]
-            
+
         elif num == 3:
             self.img_name = "Red-spear"
             self.image = IMAGES[self.img_name]
-            
+
         elif num == 4:
             self.img_name = "Red-sword"
             self.image = IMAGES[self.img_name]
-            
+
         elif num == 5:
             self.img_name = "Red-battleaxe"
             self.image = IMAGES[self.img_name]
@@ -101,7 +101,7 @@ class Samurai(pygame.sprite.Sprite):
 
     def update(self, board, x, y, order_status, hidden, treatment):
         self.x, self.y, self.order_status, self.hidden, self.treatment = int(x), int(y), int(order_status), int(hidden), int(treatment)
-        
+
         if (self.x,self.y) != (-1, -1):
             self.set_center(board.casas[(self.x,self.y)]['rect'].center)
             self.drawBoard(SCREEN)
@@ -120,14 +120,14 @@ class Samurai(pygame.sprite.Sprite):
 
         #Box
         boxImg = IMAGES_BUTTONS['Empty']
-        boxRect = boxImg.get_rect(center=centerStat)      
+        boxRect = boxImg.get_rect(center=centerStat)
         SCREEN.blit(boxImg,boxRect)
-        
+
         #Weapon
         statusRect = self.image.get_rect(center=centerStat)
         SCREEN.blit(self.image,statusRect)
 
-        #redBar        
+        #redBar
         redBar = pygame.Rect(centerStat[0]+25,centerStat[1]+5,5*18,10)
         pygame.draw.rect(SCREEN, (255,0,0), redBar)
 
@@ -186,9 +186,9 @@ class Board:
 
 class ButtonSamurai(pygame.sprite.Sprite):
     def __init__(self):
-   
+
         self.center = [550,100]
-        
+
         self.boxRect = ''
         self.boxImg = 'Empty'
         self.boxRect = IMAGES_BUTTONS[self.boxImg].get_rect(center=self.center)
@@ -200,7 +200,7 @@ class ButtonSamurai(pygame.sprite.Sprite):
         self.samRect = IMAGES[self.img0].get_rect(center=self.center)
 
     def draw(self,samurai,update=True):
-        
+
         #box
         SCREEN.blit(IMAGES_BUTTONS[self.boxImg],self.boxRect)
 
@@ -240,33 +240,33 @@ class Acao(pygame.sprite.Sprite):
         cmx = 550   #centerMoveX
         cmy = 200   #centerMoveY
 
-        cox = 670   #centerOcuppyX 
+        cox = 670   #centerOcuppyX
         coy = 140   #centerOcuppyY
 
         dPad = 43  #distancia do center do Pad
 
         if num == 0:
-            self.imgName, self.center = "Send"         , (450,        500      )  
+            self.imgName, self.center = "Send"         , (450,        500      )
         elif num == 1:
-            self.imgName, self.center = "occupy_down"  , (cox,        coy+dPad)  
+            self.imgName, self.center = "occupy_down"  , (cox,        coy+dPad)
         elif num == 2:
-            self.imgName, self.center = "occupy_right" , (cox+dPad,  coy      )  
+            self.imgName, self.center = "occupy_right" , (cox+dPad,  coy      )
         elif num == 3:
-            self.imgName, self.center = "occupy_up"    , (cox,        coy-dPad)  
+            self.imgName, self.center = "occupy_up"    , (cox,        coy-dPad)
         elif num == 4:
-            self.imgName, self.center = "occupy_left"  , (cox-dPad,  coy      )  
+            self.imgName, self.center = "occupy_left"  , (cox-dPad,  coy      )
         elif num == 5:
-            self.imgName, self.center = "move_down"    , (cmx,        cmy+dPad)  
+            self.imgName, self.center = "move_down"    , (cmx,        cmy+dPad)
         elif num == 6:
-            self.imgName, self.center = "move_right"   , (cmx+dPad,  cmy      )  
+            self.imgName, self.center = "move_right"   , (cmx+dPad,  cmy      )
         elif num == 7:
-            self.imgName, self.center = "move_up"      , (cmx,        cmy-dPad)  
+            self.imgName, self.center = "move_up"      , (cmx,        cmy-dPad)
         elif num == 8:
-            self.imgName, self.center = "move_left"    , (cmx-dPad,  cmy      )  
+            self.imgName, self.center = "move_left"    , (cmx-dPad,  cmy      )
         elif num == 9:
-            self.imgName, self.center = "Hide"         , (670,        240      )  
+            self.imgName, self.center = "Hide"         , (670,        240      )
         elif num == 10:
-            self.imgName, self.center = "Erase"        , (400,        500      )  
+            self.imgName, self.center = "Erase"        , (400,        500      )
 
         self.img = IMAGES_BUTTONS[self.imgName]
         self.rect = self.img.get_rect(center=self.center)
@@ -279,7 +279,7 @@ class Acao(pygame.sprite.Sprite):
         movImg = IMAGES_BUTTONS['Move']
         movRect = movImg.get_rect(center=(cmx,cmy))
         SCREEN.blit(movImg, movRect)
-        
+
         if update:
             pygame.display.update()
 
@@ -292,6 +292,7 @@ class OrderList(pygame.sprite.Sprite):
 
         self.centers = [
             ( 40,500),
+
             (125,500),
             (175,500),
             (225,500),
@@ -344,7 +345,7 @@ class OrderList(pygame.sprite.Sprite):
             self.draw()
 
     def clear(self):
-        self.order = self.order[:1] 
+        self.order = self.order[:1]
         self.draw(False)
 
     def draw(self,update=True):
@@ -355,7 +356,6 @@ class OrderList(pygame.sprite.Sprite):
             boxImg = IMAGES_BUTTONS['Empty']
             boxRect = boxImg.get_rect(center=self.centers[i])
             SCREEN.blit(boxImg,boxRect)
-       
         #order1:
         xImg = IMAGES[self.imgs_sam[int(order[0])]]
         xRect = xImg.get_rect(center=self.centers[0])
@@ -418,7 +418,7 @@ class Turno(pygame.sprite.Sprite):
         return self.turn == MAX_TURN - 1
 
     def draw(self, update=False):
-        
+
         SCREEN.blit(IMAGES_INFO[self.boxImg],self.boxRect)
 
         texto = myfont.render('{:>2}'.format(str(self.turn)), 1, (0,0,0))
@@ -434,18 +434,16 @@ class Turno(pygame.sprite.Sprite):
 
 
 class Cliente:
-    def __init__(self, splash_screen):
+    def __init__(self):
 
         #fazendo a conexão com o servidor
         if not MODO_OFFLINE:
             #definindo o caminho pro servidor
             self.sock = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
-            with open('config/config.json') as jfile:
-                config = json.load(jfile)
-                self.sock.connect((config["ip"], config["port"]))
+            self.sock.connect((config["ip"], config["port"]))
 
             #definindo se o player é o Player 1 ou o Player 2
-            #Apesar de receber 0 ou 1, se converte para 1 ou 2 para ficar mais intuitivo            
+            #Apesar de receber 0 ou 1, se converte para 1 ou 2 para ficar mais intuitivo
             #self.num = int(str(self.sock.recv(1), 'ascii')) + 1
 
             self.num = ''
@@ -462,16 +460,16 @@ class Cliente:
 
         print('\nSou o player {}\n'.format(self.num))
 
-        if splash_screen:
+        if SPLASH_SCREEN:
             pygame.time.delay(2000)
 
         SCREEN.fill([220,220,220])
 
         #definindo a surface
         self.screen = SCREEN
-        
+
         #definindo o tabuleiro
-        self.board = Board(15)
+        self.board = Board(config['size'])
 
         #definindo o turno e seu display
         self.turn = Turno(self.num)
@@ -481,18 +479,18 @@ class Cliente:
 
         #definindo as acoes
         self.acoes = [Acao(i) for i in range(11)]
- 
+
         #definindo a lista de ordens
         self.orderList = OrderList()
 
         #definindo o botão que escolhe o samurai
         self.buttonSamurai = ButtonSamurai()
 
- 
+
     def run(self):
 
         self.estado = ''
-        
+
         if MODO_OFFLINE:
             readable = ['', '']
 
@@ -518,7 +516,7 @@ class Cliente:
                 #atualizando a lista de acoes
                 # self.orderList.clear()
                 self.orderList.setSamurai(str(self.buttonSamurai.num))
-             
+
                 #atualizando o tabuleiro
                 tabuleiro = turno[7:22]
                 for j in range(len(tabuleiro)):
@@ -560,7 +558,7 @@ class Cliente:
                         samurai = self.samurais[self.buttonSamurai.num]
                         self.buttonSamurai.draw(samurai)
 
-                    #verifica se foi clicado em alguma das acoes   
+                    #verifica se foi clicado em alguma das acoes
                     for i in range(len(self.acoes)):
                         if self.acoes[i].rect.collidepoint(event.pos):
                             #se foi clicado em cancel, apagar ultima ação
@@ -576,12 +574,12 @@ class Cliente:
                                     if self.turn.minhaVez():
                                         if not MODO_OFFLINE:
                                             self.sock.send(bytes(' '.join(self.orderList.order), 'ascii'))
-                                        
+
                                         self.orderList.clear()
 
                                         if MODO_OFFLINE:
                                             pygame.display.update()
-                                       
+
                                         if PRINT_DADOS:
                                             print ('Comandos enviados:\n{}\n'.format(' '.join(self.orderList.order)))
 
@@ -608,6 +606,7 @@ class Cliente:
                 print('Player 2:', score_p2)
                 print()
                 self.sock.send(bytes('ok', 'ascii'))
+                self.estado = ''
                 if self.turn.partida == 2:
                     self.estado = 'terminal'
 
@@ -625,4 +624,4 @@ class Cliente:
 
         return turno
 
-Cliente(splash_screen=SPLASH_SCREEN).run()
+Cliente().run()
