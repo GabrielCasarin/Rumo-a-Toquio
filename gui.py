@@ -12,6 +12,8 @@ import select
 import pygame
 pygame.init()
 
+from config import *
+
 PRINT_DADOS = True
 
 with open('config/config.json') as jfile:
@@ -20,10 +22,6 @@ with open('config/config.json') as jfile:
     IMG_NAMES = config['IMG_SamurAI-Images']
     IMG_NAMES_BUTTONS = config['IMG_buttons-Images']
     IMG_NAMES_INFO = config['IMG_info-Images']
-    MODO_OFFLINE = config['modo_offline']
-    MAX_TURN = config['max_turn']
-    SPLASH_SCREEN = config['splash_screen']
-    COMENTARIO = config['comentario']
 
 pygame.display.set_icon(pygame.image.load("images/SamurAI-Images/Icon.png"))
 pygame.display.set_caption('Samurai3x3')
@@ -469,7 +467,7 @@ class Cliente:
         self.screen = SCREEN
 
         #definindo o tabuleiro
-        self.board = Board(config['size'])
+        self.board = Board(SIZE)
 
         #definindo o turno e seu display
         self.turn = Turno(self.num)

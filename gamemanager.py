@@ -9,14 +9,7 @@
 import json
 from server import Server
 from util import distancia
-
-
-with open('config/config.json') as jfile:
-    config = json.load(jfile)
-    MAX_TURN = config['max_turn']
-    DIST_VISAO = config['Distancia_visao']
-    COMENTARIO = config['comentario']
-    SIZE = config['size']
+from config import *
 
 
 class Game:
@@ -27,8 +20,7 @@ class Game:
         self.turn = 0
 
         #definindo o Tabuleiro
-        size = SIZE
-        self.size = size
+        self.size = SIZE
         row = size*[8]
         tabuleiro = []
         for i in range(size):
@@ -265,7 +257,7 @@ class Jogador:
             self.samurais = [Samurai(i) for i in range(3,6)]
 
     def order(self, comando, game):
-        budget = 7
+        budget = MAX_BUDGET
         cont = True
 
         comando = comando.split(' ')
@@ -552,12 +544,20 @@ def main():
             elif partida == 1:
                 turno_player = 2-game.turn%2
 
-            if COMENTARIO:
-                server.send_turn(1, game.view(1)+'\n'+msg1)
-                server.send_turn(2, game.view(2)+'\n'+msg2)
+            if TOTALMENTE_OBSERVAVEL:
+                if COMENTARIO:
+                    server.send_turn(1, game.view(-1)+'\n'+msg1)
+                    server.send_turn(2, game.view(-2)+'\n'+msg2)
+                else:
+                    server.send_turn(1, game.view(-1))
+                    server.send_turn(2, game.view(-2))
             else:
-                server.send_turn(1, game.view(1))
-                server.send_turn(2, game.view(2))
+                if COMENTARIO:
+                    server.send_turn(1, game.view(1)+'\n'+msg1)
+                    server.send_turn(2, game.view(2)+'\n'+msg2)
+                else:
+                    server.send_turn(1, game.view(1))
+                    server.send_turn(2, game.view(2))
 
             print('Turno {}: player {}'.format(game.turn, turno_player))
 
