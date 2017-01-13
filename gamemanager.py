@@ -20,10 +20,9 @@ class Game:
         self.turn = 0
 
         #definindo o Tabuleiro
-        self.size = SIZE
-        row = size*[8]
+        row = SIZE*[8]
         tabuleiro = []
-        for i in range(size):
+        for i in range(SIZE):
             tabuleiro.append(row[:])
         self.tab = tabuleiro
 
@@ -43,7 +42,7 @@ class Game:
             homes.append(self.p2.samurais[i].pos[:])
         self.homes = homes
 
-    def update(self):
+    def simular(self):
         pass
 
     def view(self, player):
@@ -167,15 +166,14 @@ class Game:
                 sS += str(samurai1.hideStat) + ' '#showingstatus
                 sS += str(samurai1.treat)#treatmentturns
 
-        size = self.size
-        row = size*[9]
+        row = SIZE*[9]
         newTab = []
-        for i in range(size):
+        for i in range(SIZE):
             newTab.append(row[:])
 
         if player == 1:
-            for y1 in range (size):
-                for x1 in range (size):
+            for y1 in range (SIZE):
+                for x1 in range (SIZE):
                     for i in range(len(self.p1.samurais)):
                         x2 = self.p1.samurais[i].pos[0]
                         y2 = self.p1.samurais[i].pos[1]
@@ -183,8 +181,8 @@ class Game:
                             newTab[y1][x1] = self.tab[y1][x1]
 
         if player == 2:
-            for y1 in range (size):
-                for x1 in range (size):
+            for y1 in range (SIZE):
+                for x1 in range (SIZE):
                     for i in range(len(self.p2.samurais)):
                         x2 = self.p2.samurais[i].pos[0]
                         y2 = self.p2.samurais[i].pos[1]
@@ -198,13 +196,13 @@ class Game:
                             else:
                                 newTab[y1][x1] = self.tab[y1][x1]
         if player == -1:
-            for y1 in range (size):
-                for x1 in range (size):
+            for y1 in range (SIZE):
+                for x1 in range (SIZE):
                     newTab[y1][x1] = self.tab[y1][x1]
 
         if player == -2:
-            for y1 in range (size):
-                for x1 in range (size):
+            for y1 in range (SIZE):
+                for x1 in range (SIZE):
                     if self.tab[y1][x1] < 3: #0>3,1>4,2>5
                         newTab[y1][x1] = self.tab[y1][x1]+3
                     elif self.tab[y1][x1] < 6: #3>0,4>1,5>2
@@ -218,7 +216,7 @@ class Game:
             sM += '\n'
             for x in range(len(newTab)-1):
                 sM += str(newTab[y][x]) + ' '
-            sM += str(newTab[y][size-1])
+            sM += str(newTab[y][SIZE-1])
 
         s = sT + sS + sM
 
@@ -463,8 +461,7 @@ class Samurai:
 
 
         #(4) Sair do Tabuleiro
-        size = game.size
-        if (x < 0 or x >= size or y < 0 or y >= size): #fora do tabuleiro
+        if (x < 0 or x >= SIZE or y < 0 or y >= SIZE): #fora do tabuleiro
             return False, 'Samurai nao pode sair tabuleiro'
 
         #(1) Colisão de dois samurais aparecendo:
