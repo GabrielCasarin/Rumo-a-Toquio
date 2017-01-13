@@ -23,12 +23,16 @@ class AI:
 
 		# Rede Neural
 		self.Q = Sequential()
+
 		self.Q.add(Dense(output_dim=camadas[1], input_dim=camadas[0]))
-		self.Q.add(Activation("sigmoid"))
-		# self.Q.add(Dense(output_dim=40))
-		# self.Q.add(Activation("sigmoid"))
-		self.Q.add(Dense(output_dim=30))
+
+		for i in range (1,len(camadas)-1):
+			self.Q.add(Activation("sigmoid"))
+			self.Q.add(Dense(output_dim=camadas[i+1]))
+
 		self.Q.compile(loss='mean_squared_error', optimizer='SGD')
+
+		self.Q.save('blablabla.h5')
 
 		self.epsilon = 0.2
 		self.batch_size = 16
@@ -49,15 +53,54 @@ class AI:
 			for j in range(len(tabuleiro)):
 				tabuleiro[i][j] = int(tabuleiro[i][j])
 
-		print('turno:', turno)
-		print('samurais:', samurais)
-		print('tabuleiro:', tabuleiro)
+		# print('turno:', turno)
+		# print('samurais:', samurais)
+		# print('tabuleiro:', tabuleiro)
 
 		budget = MAX_BUDGET
 
 		self.estado = Estado(turno, samurais, tabuleiro, budget, self.player)
 
-		print(self.estado.toVect())
+	def armazena(self,R,estado,estadoLinha,listaAcoes):
+		pass
+
+	def jogar(self):
+
+		listaAcao = []
+		acao = -1
+		budget = self.estado.budget
+		sam = -1
+
+		while budget > 0 and acao != 0:
+			vectQ = self.Q.predict(self.estado.toVect())[0]
+
+			if not listaAcao:
+				#V = np.max(vectQ)
+				i = np.argmax(vectQ)
+				sam = i//10
+				listaAcao.append(str(sam))
+			else:
+				vectQ = vectQ[10*sam:10*sam+10]
+				#V = np.max(vectQ)
+				i = np.argmax(vectQ)
+			acao = i%10
+			listaAcao.append(str(acao))
+			if 1 <= acao <= 4:
+				budget -= 4
+			elif 5 <= acao <= 8:
+				budget -= 2
+			elif acao == 9:
+				budget -= 1
+
+			#print(vectQ)
+		if self.estado.turno%2 == 0:
+			print(i)
+			print(listaAcao)
+		self.listaAcao = listaAcao
+
+	def get_comandos(self):
+		self.jogar()
+		return ' '.join(self.listaAcao)
 
 def search(game):
 	pass
@@ -85,25 +128,26 @@ class Estado:
 	def toVect(self):
 		tam =  33 + len(self.tabuleiro)**2
 
-		vect = np.ndarray(tam)
+		vect = np.ndarray((1,tam))
 		k = 0
 
-		vect[0] = self.turno
+		vect[0][0] = self.turno
 		k+= 1
 
 		for i in range (len(self.samurais)):
 			for j in range (5):
-				vect[k] = self.samurais[i][j]
+				vect[0][k] = self.samurais[i][j]
 				k += 1
 
 		for i in range (len(self.tabuleiro)):
 			for j in range (len(self.tabuleiro)):
-				vect[k] = self.tabuleiro[i][j]
+
+				vect[0][k] = self.tabuleiro[i][j]
 				k += 1
 
-		vect[k] = self.budget
+		vect[0][k] = self.budget
 		k += 1
 
-		vect[k] = self.player
+		vect[0][k] = self.player
 
 		return vect

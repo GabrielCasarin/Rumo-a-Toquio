@@ -596,6 +596,8 @@ def main_ia():
 
         while game.turn < MAX_TURN:
 
+            print('OOOOOI EU SOU O tuRNO', game.turn)
+
             if partida == 0:
                 turno_player = game.turn%2 + 1
             elif partida == 1:
@@ -612,7 +614,12 @@ def main_ia():
             else:
                 IA.set_turn(game.view(turno_player))
 
-            comando = IA.recv_comandos()
+            comando = IA.get_comandos()
+
+            if turno_player == 1:
+                msg1 = game.p1.order(comando,game)
+            else:
+                msg2 = game.p2.order(comando,game)
 
             game.turn += 1
             if game.turn%6 == 0:
@@ -623,8 +630,12 @@ def main_ia():
         score1 += game.score(1)
         score2 += game.score(2)
 
-    IA_1.set_scores(score1, score2)
-    IA_2.set_scores(score1, score2)
+    print(score1)
+    print(score2)
+
+
+    #IA_1.set_scores(score1, score2)
+    #IA_2.set_scores(score1, score2)
 
 
 main_ia()
