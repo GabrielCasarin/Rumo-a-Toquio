@@ -10,6 +10,7 @@ import json
 from server import Server
 from util import distancia
 from config import *
+from ai import AI
 
 
 class Game:
@@ -578,4 +579,52 @@ def main():
 
         server.send_scores(score1, score2)
 
-main()
+# main()
+
+def main_ia():
+    game = Game()
+
+    IA_1 = AI(game, player=0, treinar=True)
+    IA_2 = AI(game, player=1, treinar=False)
+
+    score1 = 0
+    score2 = 0
+
+    for partida in range(1):
+
+        game.__init__()
+
+        while game.turn < MAX_TURN:
+
+            if partida == 0:
+                turno_player = game.turn%2 + 1
+            elif partida == 1:
+                turno_player = 2-game.turn%2
+
+            if turno_player == 1: #IA_1
+                IA = IA_1
+            else:
+                IA = IA_2
+
+
+            if TOTALMENTE_OBSERVAVEL:
+                IA.set_turn(game.view(-turno_player))
+            else:
+                IA.set_turn(game.view(turno_player))
+
+            comando = IA.recv_comandos()
+
+            game.turn += 1
+            if game.turn%6 == 0:
+                game.clearOrderStat()
+
+            game.heal()
+
+        score1 += game.score(1)
+        score2 += game.score(2)
+
+    IA_1.set_scores(score1, score2)
+    IA_2.set_scores(score1, score2)
+
+
+main_ia()
