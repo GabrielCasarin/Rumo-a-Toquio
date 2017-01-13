@@ -61,7 +61,23 @@ class AI:
 
 		self.estado = Estado(turno, samurais, tabuleiro, budget, self.player)
 
-	def armazena(self,R,estado,estadoLinha,listaAcoes):
+	def armazena(self):
+		# estado = self.estado
+		# listaAcao = self.listaAcao
+
+		#if estourou o espaço de armazenamento
+			#treinar
+
+
+		pass
+
+	def reward(self,estado, estadoLinha, acao):
+		#punicao:
+		#nao terminar a jogada com 0
+		#jogada invalida
+		#punicao leve por acao para ele nao fazer jogadas e desfazer em seguida
+
+
 		pass
 
 	def jogar(self):
@@ -71,8 +87,12 @@ class AI:
 		budget = self.estado.budget
 		sam = -1
 
+
+		estado = self.estado
+		#estado = self.estado.copy()  #TODO IMPORTANTE
+
 		while budget > 0 and acao != 0:
-			vectQ = self.Q.predict(self.estado.toVect())[0]
+			vectQ = self.Q.predict(estado.toVect())[0]
 
 			if not listaAcao:
 				#V = np.max(vectQ)
@@ -92,15 +112,23 @@ class AI:
 			elif acao == 9:
 				budget -= 1
 
-			#print(vectQ)
+			# estado.simulate(sam, acao)
+
+		# armazenar o estado e as acoes
+
 		if self.estado.turno%2 == 0:
 			print(i)
 			print(listaAcao)
 		self.listaAcao = listaAcao
+		#self.armazenar()
 
 	def get_comandos(self):
 		self.jogar()
 		return ' '.join(self.listaAcao)
+
+	def armazenar(self):
+		pass
+
 
 def search(game):
 	pass
@@ -151,3 +179,7 @@ class Estado:
 		vect[0][k] = self.player
 
 		return vect
+
+	#TODO
+	def copy(self, arg):
+		pass
