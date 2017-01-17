@@ -6,11 +6,10 @@
 ##                                                              ##
 ##################################################################
 
-import json
 from server import Server
 from util import distancia
 from config import *
-from ai import AI
+from ai import AI, EstadosDB
 
 
 class Game:
@@ -42,9 +41,6 @@ class Game:
             self.tab[self.p2.samurais[i].pos[1]][self.p2.samurais[i].pos[0]] = i + 3
             homes.append(self.p2.samurais[i].pos[:])
         self.homes = homes
-
-    def simular(self):
-        pass
 
     def view(self, player):
 
@@ -293,7 +289,7 @@ class Jogador:
         return msg
 
 class Samurai:
-    def __init__(self,num):
+    def __init__(self, num):
 
         #Home position
         delta = SIZE//2
@@ -355,7 +351,7 @@ class Samurai:
         self.hideStat = 0
         self.treat = 18 + 1
 
-    def action(self,game,acao,budget):
+    def action(self, game, acao, budget):
 
         cont = False
         custo = 0
@@ -584,8 +580,10 @@ def main():
 def main_ia():
     game = Game()
 
-    IA_1 = AI(game, player=0, treinar=True)
-    IA_2 = AI(game, player=1, treinar=False)
+    estadosdb = EstadosDB()
+
+    IA_1 = AI(player=0, treinar=True,  estadosdb=estadosdb)
+    IA_2 = AI(player=1, treinar=False, estadosdb=estadosdb)
 
     score1 = 0
     score2 = 0
@@ -608,7 +606,6 @@ def main_ia():
             else:
                 IA = IA_2
 
-
             if TOTALMENTE_OBSERVAVEL:
                 IA.set_turn(game.view(-turno_player))
             else:
@@ -617,9 +614,9 @@ def main_ia():
             comando = IA.get_comandos()
 
             if turno_player == 1:
-                msg1 = game.p1.order(comando,game)
+                msg1 = game.p1.order(comando, game)
             else:
-                msg2 = game.p2.order(comando,game)
+                msg2 = game.p2.order(comando, game)
 
             game.turn += 1
             if game.turn%6 == 0:
@@ -637,5 +634,6 @@ def main_ia():
     #IA_1.set_scores(score1, score2)
     #IA_2.set_scores(score1, score2)
 
+    estadosdb.encerrar()
 
 main_ia()

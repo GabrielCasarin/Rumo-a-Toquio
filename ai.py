@@ -23,7 +23,7 @@ from config import *
 
 
 class AI:
-	def __init__(self, player, treinar, camadas=[82, 40, 30]):
+	def __init__(self, player, treinar, camadas=[82, 40, 30], estadosdb):
 		super(AI, self).__init__()
 		self.player = player
 		self.treinar = treinar
@@ -44,6 +44,8 @@ class AI:
 		self.epsilon = 0.2
 		self.batch_size = 16
 
+		self.bd = estadosdb
+
 	def set_turn(self, msg):
 		msg = msg.split('\n')
 
@@ -62,9 +64,9 @@ class AI:
 
 		budget = MAX_BUDGET
 
-		self.estado = Estado(turno, samurais, tabuleiro, budget, self.player)
+		self.estado = self.bd.get_estado(turno, samurais, tabuleiro, budget, self.player)
 
-	def armazena(self):
+	def armazenar(self):
 		# estado = self.estado
 		# listaAcao = self.listaAcao
 
@@ -98,13 +100,11 @@ class AI:
 			vectQ = self.Q.predict(estado.to_vect())[0]
 
 			if not listaAcao:
-				#V = np.max(vectQ)
 				i = np.argmax(vectQ)
 				sam = i//10
 				listaAcao.append(str(sam))
 			else:
 				vectQ = vectQ[10*sam:10*sam+10]
-				#V = np.max(vectQ)
 				i = np.argmax(vectQ)
 			acao = i%10
 			listaAcao.append(str(acao))
@@ -129,9 +129,6 @@ class AI:
 		self.jogar()
 		return ' '.join(self.listaAcao)
 
-	def armazenar(self):
-		pass
-
 
 def search(game):
 	pass
@@ -150,7 +147,6 @@ def update(node, action, payoff):
 
 
 class Estado(persistent.Persistent):
-
 	def __init__(self, turno, samurais, tabuleiro, budget, player):
 		self.turno = turno			#int 0 95
 		self.samurais = samurais	#int de lista de lista (6x5)
@@ -226,7 +222,6 @@ class Estado(persistent.Persistent):
 
 		return vect
 
-	#TODO
 	def copy(self):
 		novo_estado = Estado(
 			turno=self.turno,
@@ -237,12 +232,13 @@ class Estado(persistent.Persistent):
 		)
 		return novo_estado
 
+
 class EstadosDB:
 	def __init__(self, arq='estados.fs'):
-		self.storage = ZODB.FileStorage.FileStorage(arq)  # armazena os dados fisicamente no arquivo .fs
-		self.db = ZODB.DB(storage)  # encapsula o objeto de armazenamento (storage), além de prover o comportamento do DB
-		self.conn = db.open()  # começa uma conexão com o DB a fim de podermos realizar transações
-		self.dbroot = conn.root()  # o objeto root funciona como um namespace para todos os outros contêineres do DB
+		self.storage = FS.FileStorage(arq)  # armazena os dados fisicamente no arquivo .fs
+		self.db = ZODB.DB(self.storage)  # encapsula o objeto de armazenamento (storage), além de prover o comportamento do DB
+		self.conn = self.db.open()  # começa uma conexão com o DB a fim de podermos realizar transações
+		self.dbroot = self.conn.root()  # o objeto root funciona como um namespace para todos os outros contêineres do DB
 		if 'estados' not in self.dbroot.keys():
 			self.dbroot['estados'] = OOBTree()
 		self.estados = self.dbroot['estados']
@@ -269,7 +265,7 @@ class EstadosDB:
 			transaction.commit()
 			return novo_estado
 
-	def close():
+	def encerrar():
 		self.conn.close()
 		self.db.close()
 		self.storage.close()
