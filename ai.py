@@ -23,7 +23,7 @@ from config import *
 
 
 class AI:
-	def __init__(self, player, treinar, camadas=[82, 40, 30], estadosdb):
+	def __init__(self, player, treinar, estadosdb, camadas=[82, 40, 30]):
 		super(AI, self).__init__()
 		self.player = player
 		self.treinar = treinar
@@ -128,22 +128,6 @@ class AI:
 	def get_comandos(self):
 		self.jogar()
 		return ' '.join(self.listaAcao)
-
-
-def search(game):
-	pass
-
-def simulate(state):
-	pass
-
-def rollout(state):
-	pass
-
-def select(node):
-	pass
-
-def update(node, action, payoff):
-	pass
 
 
 class Estado(persistent.Persistent):
