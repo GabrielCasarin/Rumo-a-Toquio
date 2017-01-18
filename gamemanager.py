@@ -26,11 +26,9 @@ class Game:
         self.tab = tabuleiro
 
         #definindo os Jogadores
-
         self.p1 = Jogador(1, self)
         self.p2 = Jogador(2, self)
         self.jogadores = [self.p1, self.p2]
-
 
         #Definindo e preenchenco as Homes Positions
         homes = []#player, pos
@@ -43,7 +41,6 @@ class Game:
         self.homes = homes
 
     def view(self, player):
-
         '''Fornece todas as informações do jogo de um determinado turno para o player
 
         player = 1: Jogador 1

@@ -24,11 +24,17 @@ class Simulador:
         # atualizar tabuleiro
 		self.game.tab = self.__estado.tabuleiro
 		self.game.turn = self.__estado.turno
-		#TODO: e samurais
+		# e samurais
 		for i in range(3):
-			self.game.p1.samurais[i] = ...
+			self.game.p1.samurais[i].pos[:] = self.__estado.samurais[i][:2]
+			self.game.p1.samurais[i].orderStat = self.__estado.samurais[i][2]
+			self.game.p1.samurais[i].hideStat = self.__estado.samurais[i][3]
+			self.game.p1.samurais[i].treat = self.__estado.samurais[i][4]
 		for i in range(3, 6):
-			self.game.p2.samurais[i] = ...
+			self.game.p2.samurais[3-i].pos[:] = self.__estado.samurais[i][:2]
+			self.game.p2.samurais[3-i].orderStat = self.__estado.samurais[i][2]
+			self.game.p2.samurais[3-i].hideStat = self.__estado.samurais[i][3]
+			self.game.p2.samurais[3-i].treat = self.__estado.samurais[i][4]
 
 	def atuar(self, sam_id, acao):
 		budget = self.__estado.budget
@@ -62,5 +68,6 @@ class Simulador:
 
 		print(msg)
 
+		# TODO
         # atualizar estado
 		# return reward ?
