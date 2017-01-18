@@ -9,7 +9,6 @@
 from server import Server
 from util import distancia
 from config import *
-from ai import AI, EstadosDB
 
 
 class Game:
@@ -28,8 +27,8 @@ class Game:
 
         #definindo os Jogadores
 
-        self.p1 = Jogador(1)
-        self.p2 = Jogador(2)
+        self.p1 = Jogador(1, self)
+        self.p2 = Jogador(2, self)
 
 
         #Definindo e preenchenco as Homes Positions
@@ -244,14 +243,16 @@ class Game:
 
 
 class Jogador:
-    def __init__(self, player):
+    def __init__(self, player, game):
 
         if player == 1:
-            self.samurais = [Samurai(i) for i in range(0,3)]
+            self.samurais = [Samurai(i, game) for i in range(0,3)]
         elif player == 2:
-            self.samurais = [Samurai(i) for i in range(3,6)]
+            self.samurais = [Samurai(i, game) for i in range(3,6)]
 
-    def order(self, comando, game):
+        self.game = game
+
+    def order(self, comando):
         budget = MAX_BUDGET
         cont = True
 
@@ -278,7 +279,7 @@ class Jogador:
         while comando and cont:
             acao = int(comando.pop(0))
             if acao in range(10):
-                cont, custo, msg = samurai.action(game,acao,budget)
+                cont, custo, msg = samurai.action(acao, budget)
                 budget -= custo
             else:
                 cont = False
@@ -288,8 +289,9 @@ class Jogador:
 
         return msg
 
+
 class Samurai:
-    def __init__(self, num):
+    def __init__(self, num, game):
 
         #Home position
         delta = SIZE//2
@@ -328,6 +330,8 @@ class Samurai:
         elif self.id == 2:
             self.atkMask = [[1,-1],[1,0],[1,1],[0,1],[-1,1],[-1,0],[-1,-1]]
 
+        self.game = game
+
     def __str__(self):
 
         s = '\nSamurai:'
@@ -351,7 +355,7 @@ class Samurai:
         self.hideStat = 0
         self.treat = 18 + 1
 
-    def action(self, game, acao, budget):
+    def action(self, acao, budget):
 
         cont = False
         custo = 0
@@ -362,20 +366,20 @@ class Samurai:
             pass
         elif 1 <= acao <= 4:
             if budget >= 4:
-                cont, msg = self.occupy(game,acao)
+                cont, msg = self.occupy(acao)
             custo = 4
         elif 5 <= acao <= 8:
             if budget >= 2:
-                cont, msg = self.move(game,acao)
+                cont, msg = self.move(acao)
             custo = 2
         elif acao == 9:
             if budget >= 1:
-                cont, msg = self.hide(game)
+                cont, msg = self.hide()
             custo = 1
 
         return cont, custo, msg
 
-    def occupy(self, game, acao):
+    def occupy(self, acao):
         #Occupies neighboring sections
 
         #CONDICOES:
@@ -410,23 +414,23 @@ class Samurai:
 
         for i in range (len(atkArea)):
             if (atkArea[i][0]>=0 and atkArea[i][0]<=SIZE-1 and atkArea[i][1]>=0 and atkArea[i][1]<=SIZE-1): #casa a ser ocupada dentro do tabuleiro
-                if (atkArea[i] not in game.homes): #home position
-                    game.tab[atkArea[i][1]][atkArea[i][0]] = self.id +3*self.player-3
+                if (atkArea[i] not in self.game.homes): #home position
+                    self.game.tab[atkArea[i][1]][atkArea[i][0]] = self.id +3*self.player-3
 
                     #Se tiver samurai inimigo, deixar injuried
                     if self.player == 1:
-                        for samurai2 in game.p2.samurais:
+                        for samurai2 in self.game.p2.samurais:
                             if samurai2.pos == atkArea[i]:
                                 print('Samurai machucado')
                                 samurai2.injury()
                     if self.player == 2:
-                        for samurai1 in game.p1.samurais:
+                        for samurai1 in self.game.p1.samurais:
                             if samurai1.pos == atkArea[i]:
                                 print('Samurai machucado')
                                 samurai1.injury()
         return True, 'Jogada válida'
 
-    def move(self, game, acao):
+    def move(self, acao):
 
         #Moves to one of the adjacent sections.
 
@@ -463,19 +467,19 @@ class Samurai:
 
         #(1) Colisão de dois samurais aparecendo:
         elif (self.hideStat == 0):
-            for samurai in game.p1.samurais + game.p2.samurais:
+            for samurai in self.game.p1.samurais + self.game.p2.samurais:
                 if samurai.hideStat == 0 and samurai.pos == [x,y]:
                     return False, 'Samurai nao pode entrar em casa ocupada'
 
         #(2) Samurai scondido só pode ir para casa aliada
         elif (self.hideStat==1):
-            if (self.player == 1) and (game.tab[y][x] not in [0,1,2]):
+            if (self.player == 1) and (self.game.tab[y][x] not in [0,1,2]):
                     return False, 'Samurai escondido nao pode sair de area amiga'
-            elif (self.player == 2) and (game.tab[y][x] not in [3,4,5]):
+            elif (self.player == 2) and (self.game.tab[y][x] not in [3,4,5]):
                     return False, 'Samurai escondido nao pode sair de area amiga'
 
         #(3) Não pode entrar em home positions que não é a sua prória
-        elif ([x,y] in game.homes) and ([x,y] != self.home): #home position
+        elif ([x,y] in self.game.homes) and ([x,y] != self.home): #home position
             return False, 'Samurai nao pode entrar em home positions que nao seja a sua propria'
 
         #Moving
@@ -483,7 +487,7 @@ class Samurai:
         self.pos[1] = y
         return True, 'Jogada valida'
 
-    def hide(self, game):
+    def hide(self):
         #Switches its showing state
 
         #Concicoes
@@ -493,15 +497,15 @@ class Samurai:
         #(1) Verifica se está escondendo em território não amigo
         if self.hideStat == 0:
             if self.player == 1:
-                if game.tab[self.pos[1]][self.pos[0]] not in [0,1,2]:
+                if self.game.tab[self.pos[1]][self.pos[0]] not in [0,1,2]:
                     return False, 'Samurai nao pode se esconder em territorio nao amigo'
             else:
-                if game.tab[self.pos[1]][self.pos[0]] not in [3,4,5]:
+                if self.game.tab[self.pos[1]][self.pos[0]] not in [3,4,5]:
                     return False, 'Samurai nao pode se esconder em territorio nao amigo'
 
         #(2) Verifica se está tentando aparecer onde já tem algum samurai aparecendo
         if (self.hideStat == 1):
-            for samurai in game.p1.samurais + game.p2.samurais:
+            for samurai in self.game.p1.samurais + self.game.p2.samurais:
                 if samurai.hideStat == 0 and samurai.pos == self.pos:
                     return False, 'Samurai nao pode aparecer onde ja tem um samurai aparecendo'
 
@@ -560,9 +564,9 @@ def main():
             comando = server.recv_comandos(turno_player)
 
             if turno_player == 1:
-                msg1 = game.p1.order(comando,game)
+                msg1 = game.p1.order(comando)
             else:
-                msg2 = game.p2.order(comando,game)
+                msg2 = game.p2.order(comando)
 
             game.turn += 1
             if game.turn%6 == 0:
@@ -578,6 +582,8 @@ def main():
 # main()
 
 def main_ia():
+    from ai import AI, EstadosDB
+
     game = Game()
 
     estadosdb = EstadosDB()
