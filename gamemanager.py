@@ -618,9 +618,9 @@ def main_ia():
             comando = IA.get_comandos()
 
             if turno_player == 1:
-                msg1 = game.p1.order(comando, game)
+                msg1 = game.p1.order(comando)
             else:
-                msg2 = game.p2.order(comando, game)
+                msg2 = game.p2.order(comando)
 
             game.turn += 1
             if game.turn%6 == 0:
@@ -640,4 +640,5 @@ def main_ia():
 
     estadosdb.encerrar()
 
-main_ia()
+if __name__ == '__main__':
+    main_ia()

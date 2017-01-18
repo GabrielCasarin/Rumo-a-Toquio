@@ -11,7 +11,7 @@ import hashlib
 
 import numpy as np
 from keras.models import Sequential
-from keras.layers import Input, Dense, Activation
+from keras.layers import Dense, Activation
 
 from BTrees.OOBTree import OOBTree
 import ZODB
@@ -21,12 +21,14 @@ import persistent
 
 from config import *
 
+from simulador import Simulador
+
 
 class AI:
-	def __init__(self, player, treinar, estadosdb, camadas=[82, 40, 30]):
-		super(AI, self).__init__()
-		self.player = player
-		self.treinar = treinar
+    def __init__(self, player, treinar, estadosdb, camadas=[82, 40, 30]):
+        super(AI, self).__init__()
+        self.player = player    # 0 ou 1 ~~ para indicar quem voce eh
+        self.treinar = treinar  # boolean
 
         # Rede Neural
         self.Q = Sequential()
@@ -41,10 +43,14 @@ class AI:
 
         self.Q.save('model{}.h5'.format(self.player))
 
-        self.epsilon = 0.2
-        self.batch_size = 16
+        # self.epsilon = 0.2
+        # self.batch_size = 16
+
+        self.jogasDB = JogadasDB()
 
         self.bd = estadosdb
+
+        self.simulador = Simulador()
 
     def set_turn(self, msg):
         msg = msg.split('\n')
@@ -64,66 +70,72 @@ class AI:
 
         budget = MAX_BUDGET
 
-        self.estado = self.bd.get_estado(turno, samurais, tabuleiro, budget, self.player)
+        self.estado = self.bd.get_estado(
+            turno, samurais, tabuleiro, budget, self.player)
 
     def armazenar(self):
         # estado = self.estado
         # listaAcao = self.listaAcao
 
-        #if estourou o espaço de armazenamento
-            #treinar
-
+        # if estourou o espaço de armazenamento
+            # treinar
 
         pass
 
-    def reward(self,estado, estadoLinha, acao):
-        #punicao:
-        #nao terminar a jogada com 0
-        #jogada invalida
-        #punicao leve por acao para ele nao fazer jogadas e desfazer em seguida
-
-
+    def reward(self, estado, estadoLinha, acao):
+        # punicao:
+        # nao terminar a jogada com 0
+        # jogada invalida
+        # punicao leve por acao para ele nao fazer jogadas
+        # e desfazer em seguida
         pass
 
     def jogar(self):
 
         listaAcao = []
         acao = -1
-        budget = self.estado.budget
         sam = -1
-
-
         estado = self.estado
-        #estado = self.estado.copy()  #TODO IMPORTANTE
+        self.simulador.estado = estado
 
-        while budget > 0 and acao != 0:
+        while self.estado.budget > 0 and acao != 0:
+
+            # ARMAZENARSTATE(estado)
+
             vectQ = self.Q.predict(estado.to_vect())[0]
 
             if not listaAcao:
                 i = np.argmax(vectQ)
-                sam = i//10
+                sam = i // 10
                 listaAcao.append(str(sam))
             else:
-                vectQ = vectQ[10*sam:10*sam+10]
+                vectQ = vectQ[10 * sam:10 * sam + 10]
                 i = np.argmax(vectQ)
-            acao = i%10
-            listaAcao.append(str(acao))
-            if 1 <= acao <= 4:
-                budget -= 4
-            elif 5 <= acao <= 8:
-                budget -= 2
-            elif acao == 9:
-                budget -= 1
+            acao = i % 10
 
-            # estado.simulate(sam, acao)
+            #ARMAZENAACAO(acao)
+
+            listaAcao.append(str(acao))
+
+            self.simulador.atuar(sam, acao)
+            estado = self.simulador.estado
+
+            # if 1 <= acao <= 4:
+            #     budget -= 4
+            # elif 5 <= acao <= 8:
+            #     budget -= 2
+            # elif acao == 9:
+            #     budget -= 1
+
+            #atualizarEstado simulando
+
+            # self.armazenarAcao() #armazenar o estado atual e a acao
+
+            # simulador.atuar(sam, acao)
 
         # armazenar o estado e as acoes
 
-        if self.estado.turno%2 == 0:
-            print(i)
-            print(listaAcao)
         self.listaAcao = listaAcao
-        #self.armazenar()
 
     def get_comandos(self):
         self.jogar()
@@ -132,11 +144,11 @@ class AI:
 
 class Estado(persistent.Persistent):
     def __init__(self, turno, samurais, tabuleiro, budget, player):
-        self.turno = turno          #int 0 95
-        self.samurais = samurais    #int de lista de lista (6x5)
-        self.tabuleiro = tabuleiro  #int de lista de lista (size x size)
-        self.budget = budget        #int 0 7
-        self.player = player        #int 0 1
+        self.turno = turno          # int 0 95
+        self.samurais = samurais    # int de lista de lista (6x5)
+        self.tabuleiro = tabuleiro  # int de lista de lista (size x size)
+        self.budget = budget        # int 0 7
+        self.player = player        # int 0 1
         self.qtd_visitas = 0        # para futuras implementacoes
 
     # GETTERS E SETTERS
@@ -169,11 +181,11 @@ class Estado(persistent.Persistent):
 
     def to_hash(self):
         string = str(self.turno)
-        for i in range (len(self.samurais)):
-            for j in range (5):
+        for i in range(len(self.samurais)):
+            for j in range(5):
                 string += str(self.samurais[i][j])
-        for i in range (len(self.tabuleiro)):
-            for j in range (len(self.tabuleiro)):
+        for i in range(len(self.tabuleiro)):
+            for j in range(len(self.tabuleiro)):
                 string += str(self.tabuleiro[i][j])
         string += str(self.budget)
         string += str(self.player)
@@ -183,19 +195,19 @@ class Estado(persistent.Persistent):
     def to_vect(self):
         tam = 33 + len(self.tabuleiro)**2
 
-        vect = np.ndarray((1,tam))
+        vect = np.ndarray((1, tam))
         k = 0
 
         vect[0][k] = self.turno
         k += 1
 
-        for i in range (len(self.samurais)):
-            for j in range (5):
+        for i in range(len(self.samurais)):
+            for j in range(5):
                 vect[0][k] = self.samurais[i][j]
                 k += 1
 
-        for i in range (len(self.tabuleiro)):
-            for j in range (len(self.tabuleiro)):
+        for i in range(len(self.tabuleiro)):
+            for j in range(len(self.tabuleiro)):
                 vect[0][k] = self.tabuleiro[i][j]
                 k += 1
 
@@ -216,6 +228,38 @@ class Estado(persistent.Persistent):
         )
         return novo_estado
 
+class JogadasDB:
+
+    def __init__(self):
+        linha = {'turno':'', 'acao':'', 'estado':'', 'reward':''}
+        self.estagioAtual = 'aceitaAcao'
+        # 'aceitaAcao', 'aceitaState', 'aceitaReward', 'Error'
+
+        # proxima tuple
+        acao = None
+        # state = state
+        reward = None
+
+    def addAcao(self,acao):
+        if self.estagioAtual == 'aceitaAcao':
+            # proxima tuple
+            # colocar acao
+            self.estagioAtual = 'aceitaState'
+        else:
+            self.estagioAtual = 'Error'
+    def addState(self,state):
+        if self.estagioAtual == 'aceitaState':
+            # colocar estado
+            self.estagioAtual = 'aceitaReward'
+        else:
+            self.estagioAtual = 'Error'
+
+    def addReward(self,reward):
+        if self.estagioAtual == 'aceitaReward':
+            # colocar reward(estado, estado da linha de cima)
+            self.estagioAtual = 'aceitaAcao'
+        else:
+            self.estagioAtual = 'Error'
 
 class EstadosDB:
     def __init__(self, arq='estados.fs'):
@@ -230,11 +274,11 @@ class EstadosDB:
     def get_estado(self, turno, samurais, tabuleiro, budget, player):
         # calcula o hash
         string = str(turno)
-        for i in range (len(samurais)):
-            for j in range (5):
+        for i in range(len(samurais)):
+            for j in range(5):
                 string += str(samurais[i][j])
-        for i in range (len(tabuleiro)):
-            for j in range (len(tabuleiro)):
+        for i in range(len(tabuleiro)):
+            for j in range(len(tabuleiro)):
                 string += str(tabuleiro[i][j])
         string += str(budget)
         string += str(player)
