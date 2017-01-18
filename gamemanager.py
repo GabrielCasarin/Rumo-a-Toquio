@@ -29,6 +29,7 @@ class Game:
 
         self.p1 = Jogador(1, self)
         self.p2 = Jogador(2, self)
+        self.jogadores = [self.p1, self.p2]
 
 
         #Definindo e preenchenco as Homes Positions
