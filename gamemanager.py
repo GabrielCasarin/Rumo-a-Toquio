@@ -283,7 +283,7 @@ class Jogador:
                 cont = False
                 msg = 'Codigo de acao invalido'
 
-        print(msg)
+        #print(msg)
 
         return msg
 
@@ -580,7 +580,8 @@ def main():
 # main()
 
 def main_ia():
-    from ai import AI, EstadosDB
+    from ai import AI
+    from database.EstadosDB import Estado, EstadosDB
 
     game = Game()
 
@@ -598,7 +599,7 @@ def main_ia():
 
         while game.turn < MAX_TURN:
 
-            print('OOOOOI EU SOU O tuRNO', game.turn)
+            print('~~~~TURNO:  ', game.turn)
 
             if partida == 0:
                 turno_player = game.turn%2 + 1
@@ -631,8 +632,9 @@ def main_ia():
         score1 += game.score(1)
         score2 += game.score(2)
 
-    print(score1)
-    print(score2)
+    print('\nSCORES:')
+    print('Player1', score1)
+    print('Player2', score2)
 
 
     #IA_1.set_scores(score1, score2)
