@@ -32,19 +32,18 @@ class JogadasDB:
 
         self.jogos = self.dbroot['jogos']
 
-        linha = {'turno':'', 'acao':'', 'estado':'', 'reward':''}
-        self.estagioAtual = 'aceitaAcao'
-        # 'aceitaAcao', 'aceitaState', 'aceitaReward', 'Error'
-
-        # proxima tuple
-        acao = None
-        # state = state
-        reward = None
-
     def addJogo(self):
-        self.idJogo = len(self.dbroot['jogos'])
+        self.estagioAtual = 'aceitaState'
+        self.idJogo = len(self.jogos)
         self.jogos[self.idJogo] = IOBTree()
         self.jogoAtual = self.jogos[self.idJogo]
+        self.jogoAtual[0] = OOBTree()
+        self.jogadaAtual = self.jogoAtual[0]
+        # default
+        self.jogadaAtual['estado'] = None
+        self.jogadaAtual['acao'] = None
+        self.jogadaAtual['reward'] = None
+
         transaction.commit()
 
     def addAcao(self, acao):
@@ -52,6 +51,9 @@ class JogadasDB:
             # proxima tuple
             # colocar acao
             self.estagioAtual = 'aceitaState'
+            numJogada = len(self.jogoAtual)
+            self.jogoAtual[numJogada] = OOBTree()
+            self.jogadaAtual = self.jogoAtual[numJogada]
             self.jogadaAtual['acao'] = acao
             transaction.commit()
         else:
@@ -61,13 +63,8 @@ class JogadasDB:
         if self.estagioAtual == 'aceitaState':
             # colocar estado
             self.estagioAtual = 'aceitaReward'
-            numJogada = len(self.jogoAtual)
-            self.jogoAtual[numJogada] = OOBTree()
-            self.jogadaAtual = self.jogoAtual[numJogada]
             self.jogadaAtual['estado'] = state
-            self.jogadaAtual['acao'] = None
-            self.jogadaAtual['reward'] = None
-            transaction.commit()
+            # transaction.commit()
         else:
             self.estagioAtual = 'Error'
 
@@ -76,6 +73,13 @@ class JogadasDB:
             # colocar reward(estado, estado da linha de cima)
             self.estagioAtual = 'aceitaAcao'
             self.jogadaAtual['reward'] = reward
-            transaction.commit()
+            # transaction.commit()
         else:
             self.estagioAtual = 'Error'
+
+    def ultimoState(self):
+        if len(self.jogoAtual) == 1:
+            return None
+        else:
+            jogadaAnterior = len(self.jogoAtual) - 2
+            self.jogoAtual[jogadaAnterior]['estado']
