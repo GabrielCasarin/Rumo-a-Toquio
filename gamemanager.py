@@ -623,6 +623,8 @@ def main_ia():
             else:
                 msg2 = game.p2.order(comando)
 
+            print('\n' + game.view(-1) + '\n')
+
             game.turn += 1
             if game.turn%6 == 0:
                 game.clearOrderStat()

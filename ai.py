@@ -12,7 +12,7 @@ from keras.models import Sequential
 from keras.layers import Dense, Activation
 
 from database.JogadasDB import JogadasDB
-# from database.EstadosDB import Estado
+from database.EstadosDB import Estado
 from simulador import Simulador
 
 from config import *
@@ -64,7 +64,7 @@ class AI:
             for j in range(len(tabuleiro)):
                 tabuleiro[i][j] = int(tabuleiro[i][j])
 
-        self.estado = self.bd.get_estado(
+        self.estado = Estado(
             turno, samurais, tabuleiro, MAX_BUDGET, self.player)
 
     def get_comandos(self):
@@ -75,10 +75,15 @@ class AI:
         estado = self.estado
         self.simulador.estado = estado
 
-        while estado.budget > 0 and acao != 0:
+        while estado.budget >= 0 and acao != 0:
 
             if self.treinar:
+                sAntes = self.jogosDB.ultimoState()
                 self.jogosDB.addState(estado)
+                r = self.reward(sAntes, estado)
+                #print(estado)
+                #print('r:', r)
+                self.jogosDB.addReward(r)
 
             vectQ = self.Q.predict(estado.to_vect())[0]
 
@@ -106,6 +111,11 @@ class AI:
             # simulador.atuar(sam, acao)
 
         # armazenar o estado e as acoes
+
+        if listaAcao[-1] != '0':
+            listaAcao.append('0')
+
+        print(listaAcao)
 
         return ' '.join(listaAcao)
 
@@ -146,3 +156,5 @@ class AI:
         if True: # (8)
         # if is meu.sam in sNovo.samurais injuried and sVelho.samurai not injuried
             reward += rEuKI
+
+        return 1
