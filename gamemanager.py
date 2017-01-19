@@ -419,12 +419,12 @@ class Samurai:
                     if self.player == 1:
                         for samurai2 in self.game.p2.samurais:
                             if samurai2.pos == atkArea[i]:
-                                print('Samurai machucado')
+                                #print('Samurai machucado')
                                 samurai2.injury()
                     if self.player == 2:
                         for samurai1 in self.game.p1.samurais:
                             if samurai1.pos == atkArea[i]:
-                                print('Samurai machucado')
+                                #print('Samurai machucado')
                                 samurai1.injury()
         return True, 'Jogada válida'
 

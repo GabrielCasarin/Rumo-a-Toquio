@@ -68,49 +68,7 @@ class AI:
         self.estado = self.bd.get_estado(
             turno, samurais, tabuleiro, budget, self.player)
 
-     def reward(self, sAntes, sDepois):
-
-        rAcao = -0.1    # (1) reward Acao
-        rAcaoInv = -5   # (2) reward Acao Invalida
-        rEuCqN  = +1    # (3) reward Eu         Conquistar  Neutro
-        rEuCqI  = +2    # (4) reward Eu         Conquistar  Inimigo
-        rICqN   = -1    # (5) reward Inimigo    Conquistar  Neutro
-        rICqEu  = -2    # (6) reward Inimigo    Conquistar  Eu
-        rEuKI = +10     # (7) reward Eu         kill        Inimigo
-        rIKEu = -10     # (8) reward Inimigo    kill        Eu
-
-        sAntes = sAntes
-        sDepois = self.estado
-
-        reward = 0
-        if True: # (1)
-            reward += rAcao
-        if True: # (2)
-            reward += rAcaoInv
-        if True: # (3)
-            #for area eu conquista neutra
-            reward += rEuCqN
-        if True: # (4)
-            #for area eu conquista inimigo
-            reward += rEuCqI
-        if True: # (5)
-            #for area ininigo conquista neutro
-            reward += rICqN
-        if True: # (6)
-            #for area inimigo conquista eu
-            reward += rICqEu
-        if True: # (7)
-        # if is enemy.sam in sNovo.samurais injuried and sVelho.samurai not injuried
-            reward += rIKEu
-        if True: # (8)
-        # if is meu.sam in sNovo.samurais injuried and sVelho.samurai not injuried
-            reward += rEuKI
-
-        # TODO
-        # return reward ?
-
-
-    def jogar(self):
+    def get_comandos(self):
 
         listaAcao = []
         acao = -1
@@ -150,10 +108,43 @@ class AI:
 
         # armazenar o estado e as acoes
 
-        self.listaAcao = listaAcao
+        return ' '.join(listaAcao)
 
-    def get_comandos(self):
-        self.jogar()
-        return ' '.join(self.listaAcao)
+    def reward(self, sAntes, sDepois):
 
+        rAcao = -0.1    # (1) reward Acao
+        rAcaoInv = -5   # (2) reward Acao Invalida
+        rEuCqN  = +1    # (3) reward Eu         Conquistar  Neutro
+        rEuCqI  = +2    # (4) reward Eu         Conquistar  Inimigo
+        rICqN   = -1    # (5) reward Inimigo    Conquistar  Neutro
+        rICqEu  = -2    # (6) reward Inimigo    Conquistar  Eu
+        rEuKI = +10     # (7) reward Eu         kill        Inimigo
+        rIKEu = -10     # (8) reward Inimigo    kill        Eu
+
+        sAntes = sAntes
+        sDepois = self.estado
+
+        reward = 0
+        if True: # (1)
+            reward += rAcao
+        if True: # (2)
+            reward += rAcaoInv
+        if True: # (3)
+            #for area eu conquista neutra
+            reward += rEuCqN
+        if True: # (4)
+            #for area eu conquista inimigo
+            reward += rEuCqI
+        if True: # (5)
+            #for area ininigo conquista neutro
+            reward += rICqN
+        if True: # (6)
+            #for area inimigo conquista eu
+            reward += rICqEu
+        if True: # (7)
+        # if is enemy.sam in sNovo.samurais injuried and sVelho.samurai not injuried
+            reward += rIKEu
+        if True: # (8)
+        # if is meu.sam in sNovo.samurais injuried and sVelho.samurai not injuried
+            reward += rEuKI
 

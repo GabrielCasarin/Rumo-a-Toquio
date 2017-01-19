@@ -6,6 +6,7 @@
 ##                                                              ##
 ##################################################################
 
+import os
 
 import hashlib
 
@@ -20,12 +21,17 @@ import persistent
 class JogadasDB:
 
     def __init__(self, arq='Jogos.fs'):
-        self.storage = FS.FileStorage(arq)  # armazena os dados fisicamente no arquivo .fs
+        self.storage = FS.FileStorage(os.path.join('database','tmp', arq))  # armazena os dados fisicamente no arquivo .fs
         self.db = ZODB.DB(self.storage)  # encapsula o objeto de armazenamento (storage), além de prover o comportamento do DB
         self.conn = self.db.open()  # começa uma conexão com o DB a fim de podermos realizar transações
         self.dbroot = self.conn.root()  # o objeto root funciona como um namespace para todos os outros contêineres do DB
+
         if 'jogadas' not in self.dbroot.keys():
             self.dbroot['jogadas'] = IOBTree()
+            self.idJogo = 0
+        else:
+            self.idJogo = len(self.dbroot['jogadas'])
+
         self.jogadas = self.dbroot['jogadas']
 
         linha = {'turno':'', 'acao':'', 'estado':'', 'reward':''}
