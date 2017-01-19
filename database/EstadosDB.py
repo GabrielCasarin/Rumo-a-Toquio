@@ -144,3 +144,11 @@ class Estado(persistent.Persistent):
         )
         return novo_estado
 
+    def __str__(self):
+        s = 'turno: ' + str(self.turno) + '\n'
+        s += 'samurais:\n'
+        for sam in self.samurais:
+            s += '    {0[0]} {0[1]} {0[2]} {0[3]} {0[4]}\n'.format(sam)
+        s+= 'budget: ' + str(self.budget)
+
+        return s
