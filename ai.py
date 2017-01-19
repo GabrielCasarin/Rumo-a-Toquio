@@ -12,11 +12,11 @@ from keras.models import Sequential
 from keras.layers import Dense, Activation
 
 from database.JogadasDB import JogadasDB
-from database.EstadosDB import Estado
+# from database.EstadosDB import Estado
+from simulador import Simulador
 
 from config import *
 
-from simulador import Simulador
 
 class AI:
     def __init__(self, player, treinar, estadosdb, camadas=[82, 40, 30]):
@@ -42,6 +42,7 @@ class AI:
 
         if self.treinar:
             self.jogosDB = JogadasDB()
+            self.jogosDB.addJogo()
 
         self.bd = estadosdb
 
@@ -63,10 +64,8 @@ class AI:
             for j in range(len(tabuleiro)):
                 tabuleiro[i][j] = int(tabuleiro[i][j])
 
-        budget = MAX_BUDGET
-
         self.estado = self.bd.get_estado(
-            turno, samurais, tabuleiro, budget, self.player)
+            turno, samurais, tabuleiro, MAX_BUDGET, self.player)
 
     def get_comandos(self):
 
@@ -147,4 +146,3 @@ class AI:
         if True: # (8)
         # if is meu.sam in sNovo.samurais injuried and sVelho.samurai not injuried
             reward += rEuKI
-

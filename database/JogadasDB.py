@@ -26,13 +26,11 @@ class JogadasDB:
         self.conn = self.db.open()  # começa uma conexão com o DB a fim de podermos realizar transações
         self.dbroot = self.conn.root()  # o objeto root funciona como um namespace para todos os outros contêineres do DB
 
-        if 'jogadas' not in self.dbroot.keys():
-            self.dbroot['jogadas'] = IOBTree()
-            self.idJogo = 0
-        else:
-            self.idJogo = len(self.dbroot['jogadas'])
+        if 'jogos' not in self.dbroot.keys():
+            self.dbroot['jogos'] = IOBTree()
+            transaction.commit()
 
-        self.jogadas = self.dbroot['jogadas']
+        self.jogos = self.dbroot['jogos']
 
         linha = {'turno':'', 'acao':'', 'estado':'', 'reward':''}
         self.estagioAtual = 'aceitaAcao'
@@ -43,23 +41,41 @@ class JogadasDB:
         # state = state
         reward = None
 
-    def addAcao(self,acao):
+    def addJogo(self):
+        self.idJogo = len(self.dbroot['jogos'])
+        self.jogos[self.idJogo] = IOBTree()
+        self.jogoAtual = self.jogos[self.idJogo]
+        transaction.commit()
+
+    def addAcao(self, acao):
         if self.estagioAtual == 'aceitaAcao':
             # proxima tuple
             # colocar acao
             self.estagioAtual = 'aceitaState'
-        else:
-            self.estagioAtual = 'Error'
-    def addState(self,state):
-        if self.estagioAtual == 'aceitaState':
-            # colocar estado
-            self.estagioAtual = 'aceitaReward'
+            self.jogadaAtual['acao'] = acao
+            transaction.commit()
         else:
             self.estagioAtual = 'Error'
 
-    def addReward(self,reward):
+    def addState(self, state):
+        if self.estagioAtual == 'aceitaState':
+            # colocar estado
+            self.estagioAtual = 'aceitaReward'
+            numJogada = len(self.jogoAtual)
+            self.jogoAtual[numJogada] = OOBTree()
+            self.jogadaAtual = self.jogoAtual[numJogada]
+            self.jogadaAtual['estado'] = state
+            self.jogadaAtual['acao'] = None
+            self.jogadaAtual['reward'] = None
+            transaction.commit()
+        else:
+            self.estagioAtual = 'Error'
+
+    def addReward(self, reward):
         if self.estagioAtual == 'aceitaReward':
             # colocar reward(estado, estado da linha de cima)
             self.estagioAtual = 'aceitaAcao'
+            self.jogadaAtual['reward'] = reward
+            transaction.commit()
         else:
             self.estagioAtual = 'Error'
