@@ -56,6 +56,7 @@ class Simulador:
         else:
             custo = 100     # deixar isso elegante depois
         self.estado.budget -= custo
+        print('custo:', custo, ' budget:', self.estado.budget)
 
         if self.estado.budget >= 0:
             # atualizar estado

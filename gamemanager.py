@@ -581,14 +581,11 @@ def main():
 
 def main_ia():
     from ai import AI
-    from database.EstadosDB import Estado, EstadosDB
 
     game = Game()
 
-    estadosdb = EstadosDB()
-
-    IA_1 = AI(player=0, treinar=True,  estadosdb=estadosdb)
-    IA_2 = AI(player=1, treinar=False, estadosdb=estadosdb)
+    IA_1 = AI(player=0, treinar=True)
+    IA_2 = AI(player=1, treinar=False)
 
     score1 = 0
     score2 = 0
@@ -639,10 +636,7 @@ def main_ia():
     print('Player2', score2)
 
 
-    #IA_1.set_scores(score1, score2)
-    #IA_2.set_scores(score1, score2)
-
-    estadosdb.encerrar()
+    IA_1.set_scores(score1, score2)
 
 if __name__ == '__main__':
     main_ia()

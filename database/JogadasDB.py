@@ -55,6 +55,8 @@ class JogadasDB:
             self.jogoAtual[numJogada] = OOBTree()
             self.jogadaAtual = self.jogoAtual[numJogada]
             self.jogadaAtual['acao'] = acao
+            self.jogadaAtual['estado'] = None
+            self.jogadaAtual['reward'] = None
             transaction.commit()
         else:
             self.estagioAtual = 'Error'
@@ -63,7 +65,7 @@ class JogadasDB:
         if self.estagioAtual == 'aceitaState':
             # colocar estado
             self.estagioAtual = 'aceitaReward'
-            self.jogadaAtual['estado'] = state
+            self.jogadaAtual['estado'] = state.copy()
             # transaction.commit()
         else:
             self.estagioAtual = 'Error'
@@ -83,3 +85,18 @@ class JogadasDB:
         else:
             jogadaAnterior = len(self.jogoAtual) - 2
             self.jogoAtual[jogadaAnterior]['estado']
+
+    def imprimir_jogo(self, idJogo):
+        for i in range(len(self.jogos[idJogo])):
+            jogada = self.jogos[idJogo][i]
+            print('Jogada', i)
+            print('Acao:', jogada['acao'])
+            print('Estado:')
+            print(jogada['estado'])
+            print('Reward:', jogada['reward'])
+            print()
+
+    def close(self):
+        self.conn.close()
+        self.db.close()
+        self.storage.close()
