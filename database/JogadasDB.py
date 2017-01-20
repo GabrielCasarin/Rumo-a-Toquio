@@ -33,56 +33,34 @@ class JogadasDB:
 
     def addJogo(self):
         # grava o estado inicial, inicialmente
-        # self.estagioAtual = 'q0'
         # cria um registro para o novo jogo
         self.idJogo = len(self.jogos)
         self.jogos[self.idJogo] = IOBTree()
         self.jogoAtual = self.jogos[self.idJogo]
-        self.jogoAtual[0] = OOBTree()
-        self.jogadaAtual = self.jogoAtual[0]
-        # # default
-        # self.jogadaAtual['estado'] = None
-        # self.jogadaAtual['acao'] = None
-        # self.jogadaAtual['reward'] = None
-
-    def addAcao(self, acao):
-        # if self.estagioAtual == 'q1':
-            # colocar acao
-            # self.estagioAtual = 'q2'
-            numJogada = len(self.jogoAtual)
-            self.jogadaAtual['acao'] = acao
-            self.jogadaAnterior = self.jogadaAtual
-            self.jogoAtual[numJogada] = OOBTree()
-            self.jogadaAtual = self.jogoAtual[numJogada]
-            self.jogadaAtual['estado'] = None
-        # else:
-            # self.estagioAtual = 'Error'
 
     def addState(self, state):
-        # if self.estagioAtual == 'q0':
-            # colocar estado
-            # self.estagioAtual = 'q1'
-            self.jogadaAtual['estado'] = state.copy()
-        # elif self.estagioAtual == 'q2':
-            # self.estagioAtual = 'q3'
-            self.jogadaAtual['estado'] = state.copy()
-        else:
-            # self.estagioAtual = 'Error'
+        # cria uma nova linha e colocar estado nela
+        if len(self.jogoAtual) > 0:
+            self.jogadaAnterior = self.jogadaAtual
+        numJogada = len(self.jogoAtual)
+        self.jogoAtual[numJogada] = OOBTree()
+        self.jogadaAtual = self.jogoAtual[numJogada]
+        # colocar estado
+        self.jogadaAtual['estado'] = state.copy()
+
+    def addAcao(self, acao):
+        # colocar acao na linha atual
+        self.jogadaAtual['acao'] = acao
 
     def addReward(self, reward):
-        # if self.estagioAtual == 'q3':
-            # colocar reward(estado, estado da linha de cima)
-            # self.estagioAtual = 'q1'
-            self.jogadaAnterior['reward'] = reward
-        # else:
-            # self.estagioAtual = 'Error'
+        # colocar reward na linha anterior
+        self.jogadaAnterior['reward'] = reward
 
-    def ultimoState(self):
-        if len(self.jogoAtual) == 1:
-            return None
-        else:
-            jogadaAnterior = len(self.jogoAtual) - 2
-            self.jogoAtual[jogadaAnterior]['estado']
+    def ultima_acao(self):
+        return self.jogadaAnterior['acao']
+
+    def ultimo_estado(self):
+        return self.jogadaAnterior['estado']
 
     def imprimir_jogo(self, idJogo):
         for i in range(len(self.jogos[idJogo])):

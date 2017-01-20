@@ -19,10 +19,10 @@ from simulador import Simulador
 
 from config import *
 
-randomizar = False
+randomizar = True
 
 class AI:
-    def __init__(self, player, em_treinamento, camadas=[82, 40, 30]):
+    def __init__(self, player, em_treinamento=False, camadas=[82, 40, 30]):
         super(AI, self).__init__()
         self.player = player    # 0 ou 1 ~~ para indicar quem voce eh
         self.em_treinamento = em_treinamento  # boolean
@@ -44,19 +44,15 @@ class AI:
 
         self.epsilon = 0.2
 
-        self.jogosDB = JogadasDB()
-
-        if self.player == 0 and not self.em_treinamento:
-            self.jogosDB.addJogo()
+        if self.player == 0:
+            self.jogosDB = JogadasDB()
+            if not self.em_treinamento:
+                self.jogosDB.addJogo()
 
         self.simulador = Simulador()
 
-        self.i = 0
-
-        self.anterior_estado = None
+        self.estado_anterior = None
         self.estado = None
-
-        # self.jaJogou = False
 
     def set_turn(self, msg):
         msg = msg.split('\n')
@@ -77,7 +73,6 @@ class AI:
         self.estado = Estado(
             turno, samurais, tabuleiro, MAX_BUDGET, self.player)
 
-
     def get_comandos(self):
 
         #s -> a
@@ -88,51 +83,17 @@ class AI:
         acao = -1
         sam = -1
 
-        # s = self.estado
-        # self.simulador.estado = estado
+        self.simulador.estado = self.estado
 
-        # sLinha = self.estado
-
-        # if self.jaJogou == False:
-        #     self.jaJogou = True
-
-        #     self.jogosDB.addState(s)
-
-        #     vectQ = self.Q.predict(s.to_vect())[0]
-        #     i = np.argmax(vectQ)
-
-        #     sam = i//10
-        #     listaAcao.append(str(sam))
-        #     acao = i%10
-        #     listaAcao.append(str(acao))
-
-        #     self.jogosDB.addAcao(acao)
-
-        #     sLinha = simulador.atuar(sam,acao)
-
-
-        # while sLinha.budget >= 0 and acao != 0:
-        #     tenho s e sLinha
-
-
-        listaAcao = []
-        acao = -1
-        sam = -1
-        estado = self.estado
-        self.simulador.estado = estado
-
-
-        while estado.budget >= 0 and acao != 0:
-
+        while self.estado.budget >= 0 and acao != 0:
             if self.player == 0: # se é a IA sendo treinada
-                # if self.anterior_estado is not None:
-                #     r = self.reward(estado, ultima_acao, self.anterior_estado)
-                #     self.addReward(r)
-                # sAntes = self.jogosDB.ultimoState()
-                self.jogosDB.addState(estado)
-                print('armazenamento budget: ', estado.budget)
+                self.jogosDB.addState(self.estado)
+                if self.estado_anterior is not None:
+                    r = self.reward(self.estado, self.jogosDB.ultima_acao(), self.estado_anterior)
+                    self.jogosDB.addReward(r)
+                print('armazenamento budget: ', self.estado.budget)
 
-            vectQ = self.Q.predict(estado.to_vect())[0]
+            vectQ = self.Q.predict(self.estado.to_vect())[0]
 
             if not listaAcao:
                 i = np.argmax(vectQ)
@@ -149,17 +110,14 @@ class AI:
             listaAcao.append(str(acao))
 
             self.simulador.atuar(sam, acao)
-            self.anterior_estado = estado
-            estado = self.simulador.estado
-
-            if self.prox_estado is not None:
+            self.estado_anterior = self.estado
+            self.estado = self.simulador.estado
 
         print(listaAcao)
 
         return ' '.join(listaAcao)
 
-    def reward(self):
-        s = self.estado
+    def reward(self, s, a, sL):
 
         #depende da acao  TODO
         rAcao = -0.1    # (1) reward Acao
@@ -197,14 +155,13 @@ class AI:
         # # if is meu.sam in sNovo.samurais injuried and sVelho.samurai not injuried
         #     reward += rEuKI
 
-        return 0
+        return self.i
 
     def set_scores(self, scoreEu, scoreInim):
         self.jogosDB.estagioAtual = 'aceitaReward' # xD
         self.jogosDB.addReward(10*(scoreEu - scoreInim))
         self.jogosDB.commit()
         self.jogosDB.close()
-
 
     def treinar(self):
         batch_size = 16
@@ -246,8 +203,7 @@ class AI:
 
         self.jogosDB.close()
 
+
 if __name__ == '__main__':
     a = AI(player=0, em_treinamento=True)
-    print(type(a))
-    print(a)
     a.treinar()
