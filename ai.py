@@ -22,10 +22,10 @@ from config import *
 randomizar = False
 
 class AI:
-    def __init__(self, player, treinar, camadas=[82, 40, 30]):
+    def __init__(self, player, em_treinamento, camadas=[82, 40, 30]):
         super(AI, self).__init__()
         self.player = player    # 0 ou 1 ~~ para indicar quem voce eh
-        self.treinar = treinar  # boolean
+        self.em_treinamento = em_treinamento  # boolean
 
         # Rede Neural
         nome_arq = 'model{}.h5'.format(self.player)
@@ -44,11 +44,19 @@ class AI:
 
         self.epsilon = 0.2
 
-        if self.treinar:
-            self.jogosDB = JogadasDB()
+        self.jogosDB = JogadasDB()
+
+        if self.player == 0 and not self.em_treinamento:
             self.jogosDB.addJogo()
 
         self.simulador = Simulador()
+
+        self.i = 0
+
+        self.anterior_estado = None
+        self.estado = None
+
+        # self.jaJogou = False
 
     def set_turn(self, msg):
         msg = msg.split('\n')
@@ -69,7 +77,43 @@ class AI:
         self.estado = Estado(
             turno, samurais, tabuleiro, MAX_BUDGET, self.player)
 
+
     def get_comandos(self):
+
+        #s -> a
+        #s, a -> s'
+        #s, a, s' -> R
+
+        listaAcao = []
+        acao = -1
+        sam = -1
+
+        # s = self.estado
+        # self.simulador.estado = estado
+
+        # sLinha = self.estado
+
+        # if self.jaJogou == False:
+        #     self.jaJogou = True
+
+        #     self.jogosDB.addState(s)
+
+        #     vectQ = self.Q.predict(s.to_vect())[0]
+        #     i = np.argmax(vectQ)
+
+        #     sam = i//10
+        #     listaAcao.append(str(sam))
+        #     acao = i%10
+        #     listaAcao.append(str(acao))
+
+        #     self.jogosDB.addAcao(acao)
+
+        #     sLinha = simulador.atuar(sam,acao)
+
+
+        # while sLinha.budget >= 0 and acao != 0:
+        #     tenho s e sLinha
+
 
         listaAcao = []
         acao = -1
@@ -77,17 +121,16 @@ class AI:
         estado = self.estado
         self.simulador.estado = estado
 
+
         while estado.budget >= 0 and acao != 0:
 
-            if self.treinar:
-                sAntes = self.jogosDB.ultimoState()
+            if self.player == 0: # se é a IA sendo treinada
+                # if self.anterior_estado is not None:
+                #     r = self.reward(estado, ultima_acao, self.anterior_estado)
+                #     self.addReward(r)
+                # sAntes = self.jogosDB.ultimoState()
                 self.jogosDB.addState(estado)
                 print('armazenamento budget: ', estado.budget)
-                #r = self.reward() # R(s')
-                r = 1 # temp
-                #print(estado)
-                #print('r:', r)
-                self.jogosDB.addReward(r)
 
             vectQ = self.Q.predict(estado.to_vect())[0]
 
@@ -100,13 +143,16 @@ class AI:
                 i = np.argmax(vectQ)
             acao = i % 10
 
-            if self.treinar:
+            if self.player == 0:
                 self.jogosDB.addAcao(i)
 
             listaAcao.append(str(acao))
 
             self.simulador.atuar(sam, acao)
+            self.anterior_estado = estado
             estado = self.simulador.estado
+
+            if self.prox_estado is not None:
 
         print(listaAcao)
 
@@ -160,46 +206,48 @@ class AI:
         self.jogosDB.close()
 
 
-def treinar():
-    batch_size = 16
-    gamma = 1
+    def treinar(self):
+        batch_size = 16
+        gamma = 1
 
-    Q = keras.models.load_model('model0.h5')
-    jogosDB = JogadasDB()
 
-    indices_jogos = np.ndarray(batch_size)
-    indices_jogos = np.random.randint(len(jogosDB.jogos), size=batch_size)
-    print(indices_jogos)
-    print()
-            
-    inputs = np.zeros((batch_size, Q.input_shape[1]))
-    targets = np.zeros((batch_size, Q.output_shape[1]))
-
-    for i in range(batch_size):
-        iJogo = int(indices_jogos[i])
-        iJogada = np.random.randint(1, len(jogosDB.jogos[iJogo]))
-        print('iJogo', iJogo)
-        print('iJogada', iJogada)
+        indices_jogos = np.random.randint(len(self.jogosDB.jogos), size=batch_size)
+        print(indices_jogos)
         print()
+                
+        inputs = np.zeros((batch_size, self.Q.input_shape[1]))
+        targets = np.zeros((batch_size, self.Q.output_shape[1]))
 
-        s = jogosDB.jogos[iJogo][iJogada - 1]['estado']
-        s_next = jogosDB.jogos[iJogo][iJogada]['estado']
-        acao = jogosDB.jogos[iJogo][iJogada]['acao']
-        r = jogosDB.jogos[iJogo][iJogada]['reward']
+        for i in range(batch_size):
+            iJogo = int(indices_jogos[i])
+            iJogada = np.random.randint(1, len(self.jogosDB.jogos[iJogo]))
+            # print('iJogo', iJogo)
+            # print('iJogada', iJogada)
+            # print()
 
-        s = s.to_vect()
-        inputs[i] = s
-        targets[i] = Q.predict(s)
+            s = self.jogosDB.jogos[iJogo][iJogada - 1]['estado']
+            s_next = self.jogosDB.jogos[iJogo][iJogada]['estado']
+            acao = self.jogosDB.jogos[iJogo][iJogada]['acao']
+            r = self.jogosDB.jogos[iJogo][iJogada]['reward']
 
-        if s_next is not None:
-            targets[i][acao] = r + gamma*np.max(Q.predict(s_next.to_vect()))
-        else:
-            targets[i][acao] = r
+            budget = s.budget
+            s = s.to_vect()
+            inputs[i] = s
+            targets[i] = self.Q.predict(s)
+            # print(targets)
 
-    # treina o batch
-    Q.train_on_batch(inputs, targets)
+            if s_next is not None:
+                targets[i][acao] = r + gamma*imax(self.Q.predict(s_next.to_vect()), budget)
+            else:
+                targets[i][acao] = r
 
-    jogosDB.close()
+        # treina o batch
+        self.Q.train_on_batch(inputs, targets)
+
+        self.jogosDB.close()
 
 if __name__ == '__main__':
-    treinar()
+    a = AI(player=0, em_treinamento=True)
+    print(type(a))
+    print(a)
+    a.treinar()
