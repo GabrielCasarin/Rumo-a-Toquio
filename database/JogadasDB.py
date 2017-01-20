@@ -7,7 +7,6 @@
 ##################################################################
 
 import os
-
 import hashlib
 
 from BTrees.OOBTree import OOBTree
@@ -100,3 +99,6 @@ class JogadasDB:
         self.conn.close()
         self.db.close()
         self.storage.close()
+
+    def commit(self):
+        transaction.commit()

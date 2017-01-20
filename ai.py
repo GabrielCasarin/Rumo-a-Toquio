@@ -42,8 +42,7 @@ class AI:
             # salva o modelo para próximas partidas
             self.Q.save(nome_arq)
 
-        # self.epsilon = 0.2
-        # self.batch_size = 16
+        self.epsilon = 0.2
 
         if self.treinar:
             self.jogosDB = JogadasDB()
@@ -152,10 +151,55 @@ class AI:
         # # if is meu.sam in sNovo.samurais injuried and sVelho.samurai not injuried
         #     reward += rEuKI
 
-        return 1
+        return 0
 
     def set_scores(self, scoreEu, scoreInim):
         self.jogosDB.estagioAtual = 'aceitaReward' # xD
         self.jogosDB.addReward(10*(scoreEu - scoreInim))
-        import transaction
-        transaction.commit()
+        self.jogosDB.commit()
+        self.jogosDB.close()
+
+
+def treinar():
+    batch_size = 16
+    gamma = 1
+
+    Q = keras.models.load_model('model0.h5')
+    jogosDB = JogadasDB()
+
+    indices_jogos = np.ndarray(batch_size)
+    indices_jogos = np.random.randint(len(jogosDB.jogos), size=batch_size)
+    print(indices_jogos)
+    print()
+            
+    inputs = np.zeros((batch_size, Q.input_shape[1]))
+    targets = np.zeros((batch_size, Q.output_shape[1]))
+
+    for i in range(batch_size):
+        iJogo = int(indices_jogos[i])
+        iJogada = np.random.randint(1, len(jogosDB.jogos[iJogo]))
+        print('iJogo', iJogo)
+        print('iJogada', iJogada)
+        print()
+
+        s = jogosDB.jogos[iJogo][iJogada - 1]['estado']
+        s_next = jogosDB.jogos[iJogo][iJogada]['estado']
+        acao = jogosDB.jogos[iJogo][iJogada]['acao']
+        r = jogosDB.jogos[iJogo][iJogada]['reward']
+
+        s = s.to_vect()
+        inputs[i] = s
+        targets[i] = Q.predict(s)
+
+        if s_next is not None:
+            targets[i][acao] = r + gamma*np.max(Q.predict(s_next.to_vect()))
+        else:
+            targets[i][acao] = r
+
+    # treina o batch
+    Q.train_on_batch(inputs, targets)
+
+    jogosDB.close()
+
+if __name__ == '__main__':
+    treinar()
