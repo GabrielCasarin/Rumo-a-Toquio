@@ -283,7 +283,7 @@ class Jogador:
                 cont = False
                 msg = 'Codigo de acao invalido'
 
-        print(msg)
+        #print(msg)
 
         return msg
 
@@ -354,7 +354,6 @@ class Samurai:
         self.treat = 18 + 1
 
     def action(self, acao, budget):
-
         cont = False
         custo = 0
         msg = 'Sem budget suficiente'
@@ -419,12 +418,12 @@ class Samurai:
                     if self.player == 1:
                         for samurai2 in self.game.p2.samurais:
                             if samurai2.pos == atkArea[i]:
-                                print('Samurai machucado')
+                                #print('Samurai machucado')
                                 samurai2.injury()
                     if self.player == 2:
                         for samurai1 in self.game.p1.samurais:
                             if samurai1.pos == atkArea[i]:
-                                print('Samurai machucado')
+                                #print('Samurai machucado')
                                 samurai1.injury()
         return True, 'Jogada válida'
 
@@ -580,14 +579,12 @@ def main():
 # main()
 
 def main_ia():
-    from ai import AI, EstadosDB
+    from ai import AI
 
     game = Game()
 
-    estadosdb = EstadosDB()
-
-    IA_1 = AI(player=0, treinar=True,  estadosdb=estadosdb)
-    IA_2 = AI(player=1, treinar=False, estadosdb=estadosdb)
+    IA_1 = AI(player=0)
+    IA_2 = AI(player=1)
 
     score1 = 0
     score2 = 0
@@ -598,7 +595,7 @@ def main_ia():
 
         while game.turn < MAX_TURN:
 
-            print('OOOOOI EU SOU O tuRNO', game.turn)
+            print('~~~~TURNO:  ', game.turn)
 
             if partida == 0:
                 turno_player = game.turn%2 + 1
@@ -622,6 +619,8 @@ def main_ia():
             else:
                 msg2 = game.p2.order(comando)
 
+            print('\n' + game.view(-1) + '\n')
+
             game.turn += 1
             if game.turn%6 == 0:
                 game.clearOrderStat()
@@ -631,14 +630,12 @@ def main_ia():
         score1 += game.score(1)
         score2 += game.score(2)
 
-    print(score1)
-    print(score2)
+    print('\nSCORES:')
+    print('Player1', score1)
+    print('Player2', score2)
 
 
-    #IA_1.set_scores(score1, score2)
-    #IA_2.set_scores(score1, score2)
-
-    estadosdb.encerrar()
+    IA_1.set_scores(score1, score2)
 
 if __name__ == '__main__':
     main_ia()

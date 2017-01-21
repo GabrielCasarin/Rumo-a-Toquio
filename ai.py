@@ -6,51 +6,53 @@
 ##                                                              ##
 ##################################################################
 
-
-import hashlib
+import os.path
 
 import numpy as np
+import keras.models
 from keras.models import Sequential
 from keras.layers import Dense, Activation
 
-from BTrees.OOBTree import OOBTree
-import ZODB
-import ZODB.FileStorage as FS
-import transaction
-import persistent
+from database.JogadasDB import JogadasDB
+from database.EstadosDB import Estado
+from simulador import Simulador
 
 from config import *
 
-from simulador import Simulador
-
+randomizar = True
 
 class AI:
-    def __init__(self, player, treinar, estadosdb, camadas=[82, 40, 30]):
+    def __init__(self, player, em_treinamento=False, camadas=[82, 40, 30]):
         super(AI, self).__init__()
         self.player = player    # 0 ou 1 ~~ para indicar quem voce eh
-        self.treinar = treinar  # boolean
+        self.em_treinamento = em_treinamento  # boolean
 
         # Rede Neural
-        self.Q = Sequential()
+        nome_arq = 'model{}.h5'.format(self.player)
 
-        self.Q.add(Dense(output_dim=camadas[1], input_dim=camadas[0]))
+        if os.path.isfile(nome_arq) and not randomizar:
+            self.Q = keras.models.load_model(nome_arq)
+        else:
+            self.Q = Sequential()
+            self.Q.add(Dense(output_dim=camadas[1], input_dim=camadas[0]))
+            for i in range(1, len(camadas) - 1):
+                self.Q.add(Activation("sigmoid"))
+                self.Q.add(Dense(output_dim=camadas[i + 1]))
+            self.Q.compile(loss='mean_squared_error', optimizer='SGD')
+            # salva o modelo para próximas partidas
+            self.Q.save(nome_arq)
 
-        for i in range(1, len(camadas) - 1):
-            self.Q.add(Activation("sigmoid"))
-            self.Q.add(Dense(output_dim=camadas[i + 1]))
+        self.epsilon = 0.2
 
-        self.Q.compile(loss='mean_squared_error', optimizer='SGD')
-
-        self.Q.save('model{}.h5'.format(self.player))
-
-        # self.epsilon = 0.2
-        # self.batch_size = 16
-
-        self.jogasDB = JogadasDB()
-
-        self.bd = estadosdb
+        if self.player == 0:
+            self.jogosDB = JogadasDB()
+            if not self.em_treinamento:
+                self.jogosDB.addJogo()
 
         self.simulador = Simulador()
+
+        self.estado_anterior = None
+        self.estado = None
 
     def set_turn(self, msg):
         msg = msg.split('\n')
@@ -68,41 +70,30 @@ class AI:
             for j in range(len(tabuleiro)):
                 tabuleiro[i][j] = int(tabuleiro[i][j])
 
-        budget = MAX_BUDGET
+        self.estado = Estado(
+            turno, samurais, tabuleiro, MAX_BUDGET, self.player)
 
-        self.estado = self.bd.get_estado(
-            turno, samurais, tabuleiro, budget, self.player)
+    def get_comandos(self):
 
-    def armazenar(self):
-        # estado = self.estado
-        # listaAcao = self.listaAcao
-
-        # if estourou o espaço de armazenamento
-            # treinar
-
-        pass
-
-    def reward(self, estado, estadoLinha, acao):
-        # punicao:
-        # nao terminar a jogada com 0
-        # jogada invalida
-        # punicao leve por acao para ele nao fazer jogadas
-        # e desfazer em seguida
-        pass
-
-    def jogar(self):
+        #s -> a
+        #s, a -> s'
+        #s, a, s' -> R
 
         listaAcao = []
         acao = -1
         sam = -1
-        estado = self.estado
-        self.simulador.estado = estado
 
-        while self.estado.budget > 0 and acao != 0:
+        self.simulador.estado = self.estado
 
-            # ARMAZENARSTATE(estado)
+        while self.estado.budget >= 0 and acao != 0:
+            if self.player == 0: # se é a IA sendo treinada
+                self.jogosDB.addState(self.estado)
+                if self.estado_anterior is not None:
+                    r = self.reward(self.estado, self.jogosDB.ultima_acao(), self.estado_anterior)
+                    self.jogosDB.addReward(r)
+                print('armazenamento budget: ', self.estado.budget)
 
-            vectQ = self.Q.predict(estado.to_vect())[0]
+            vectQ = self.Q.predict(self.estado.to_vect())[0]
 
             if not listaAcao:
                 i = np.argmax(vectQ)
@@ -113,187 +104,106 @@ class AI:
                 i = np.argmax(vectQ)
             acao = i % 10
 
-            #ARMAZENAACAO(acao)
+            if self.player == 0:
+                self.jogosDB.addAcao(i)
 
             listaAcao.append(str(acao))
 
             self.simulador.atuar(sam, acao)
-            estado = self.simulador.estado
+            self.estado_anterior = self.estado
+            self.estado = self.simulador.estado
 
-            # if 1 <= acao <= 4:
-            #     budget -= 4
-            # elif 5 <= acao <= 8:
-            #     budget -= 2
-            # elif acao == 9:
-            #     budget -= 1
+        print(listaAcao)
 
-            #atualizarEstado simulando
+        return ' '.join(listaAcao)
 
-            # self.armazenarAcao() #armazenar o estado atual e a acao
+    def reward(self, s, a, sL):
 
-            # simulador.atuar(sam, acao)
+        #depende da acao  TODO
+        rAcao = -0.1    # (1) reward Acao
+        rAcaoInv = -5   # (2) reward Acao Invalida
 
-        # armazenar o estado e as acoes
+        #depende do estado
+        rEuCqN  = +1    # (3) reward Eu         Conquistar  Neutro
+        rEuCqI  = +2    # (4) reward Eu         Conquistar  Inimigo
+        rICqN   = -1    # (5) reward Inimigo    Conquistar  Neutro
+        rICqEu  = -2    # (6) reward Inimigo    Conquistar  Eu
+        rEuKI = +10     # (7) reward Eu         kill        Inimigo
+        rIKEu = -10     # (8) reward Inimigo    kill        Eu
 
-        self.listaAcao = listaAcao
+        reward = 0
+        # if False: # (1)
+        #     reward += rAcao
+        # if False: # (2)
+        #     reward += rAcaoInv
+        # if False: # (3)
+        #     #for area eu conquista neutra
+        #     reward += rEuCqN
+        # if False: # (4)
+        #     #for area eu conquista inimigo
+        #     reward += rEuCqI
+        # if False: # (5)
+        #     #for area ininigo conquista neutro
+        #     reward += rICqN
+        # if False: # (6)
+        #     #for area inimigo conquista eu
+        #     reward += rICqEu
+        # if False: # (7)
+        # # if is enemy.sam in sNovo.samurais injuried and sVelho.samurai not injuried
+        #     reward += rIKEu
+        # if False: # (8)
+        # # if is meu.sam in sNovo.samurais injuried and sVelho.samurai not injuried
+        #     reward += rEuKI
 
-    def get_comandos(self):
-        self.jogar()
-        return ' '.join(self.listaAcao)
+        return self.i
+
+    def set_scores(self, scoreEu, scoreInim):
+        self.jogosDB.estagioAtual = 'aceitaReward' # xD
+        self.jogosDB.addReward(10*(scoreEu - scoreInim))
+        self.jogosDB.commit()
+        self.jogosDB.close()
+
+    def treinar(self):
+        batch_size = 16
+        gamma = 1
 
 
-class Estado(persistent.Persistent):
-    def __init__(self, turno, samurais, tabuleiro, budget, player):
-        self.turno = turno          # int 0 95
-        self.samurais = samurais    # int de lista de lista (6x5)
-        self.tabuleiro = tabuleiro  # int de lista de lista (size x size)
-        self.budget = budget        # int 0 7
-        self.player = player        # int 0 1
-        self.qtd_visitas = 0        # para futuras implementacoes
+        indices_jogos = np.random.randint(len(self.jogosDB.jogos), size=batch_size)
+        print(indices_jogos)
+        print()
+                
+        inputs = np.zeros((batch_size, self.Q.input_shape[1]))
+        targets = np.zeros((batch_size, self.Q.output_shape[1]))
 
-    # GETTERS E SETTERS
+        for i in range(batch_size):
+            iJogo = int(indices_jogos[i])
+            iJogada = np.random.randint(1, len(self.jogosDB.jogos[iJogo]))
+            # print('iJogo', iJogo)
+            # print('iJogada', iJogada)
+            # print()
 
-    # Samurais
-    @property
-    def samurais(self):
-        return self.__samurais
+            s = self.jogosDB.jogos[iJogo][iJogada - 1]['estado']
+            s_next = self.jogosDB.jogos[iJogo][iJogada]['estado']
+            acao = self.jogosDB.jogos[iJogo][iJogada]['acao']
+            r = self.jogosDB.jogos[iJogo][iJogada]['reward']
 
-    @samurais.setter
-    def samurais(self, s):
-        self.__samurais = []
-        for el in s:
-            self.__samurais.append(list(el))
-        self._p_changed = True
+            budget = s.budget
+            s = s.to_vect()
+            inputs[i] = s
+            targets[i] = self.Q.predict(s)
+            # print(targets)
 
-    # Tabuleiro
-    @property
-    def tabuleiro(self):
-        return self.__tabuleiro
+            if s_next is not None:
+                targets[i][acao] = r + gamma*imax(self.Q.predict(s_next.to_vect()), budget)
+            else:
+                targets[i][acao] = r
 
-    @tabuleiro.setter
-    def tabuleiro(self, s):
-        self.__tabuleiro = []
-        for el in s:
-            self.__tabuleiro.append(list(el))
-        self._p_changed = True
+        # treina o batch
+        self.Q.train_on_batch(inputs, targets)
 
-    # FIM GETTERS E SETTERS
+        self.jogosDB.close()
 
-    def to_hash(self):
-        string = str(self.turno)
-        for i in range(len(self.samurais)):
-            for j in range(5):
-                string += str(self.samurais[i][j])
-        for i in range(len(self.tabuleiro)):
-            for j in range(len(self.tabuleiro)):
-                string += str(self.tabuleiro[i][j])
-        string += str(self.budget)
-        string += str(self.player)
 
-        return hashlib.sha256(string.encode()).hexdigest()
-
-    def to_vect(self):
-        tam = 33 + len(self.tabuleiro)**2
-
-        vect = np.ndarray((1, tam))
-        k = 0
-
-        vect[0][k] = self.turno
-        k += 1
-
-        for i in range(len(self.samurais)):
-            for j in range(5):
-                vect[0][k] = self.samurais[i][j]
-                k += 1
-
-        for i in range(len(self.tabuleiro)):
-            for j in range(len(self.tabuleiro)):
-                vect[0][k] = self.tabuleiro[i][j]
-                k += 1
-
-        vect[0][k] = self.budget
-        k += 1
-
-        vect[0][k] = self.player
-
-        return vect
-
-    def copy(self):
-        novo_estado = Estado(
-            turno=self.turno,
-            samurais=self.samurais,
-            tabuleiro=self.tabuleiro,
-            budget=self.budget,
-            player=self.player
-        )
-        return novo_estado
-
-class JogadasDB:
-
-    def __init__(self):
-        linha = {'turno':'', 'acao':'', 'estado':'', 'reward':''}
-        self.estagioAtual = 'aceitaAcao'
-        # 'aceitaAcao', 'aceitaState', 'aceitaReward', 'Error'
-
-        # proxima tuple
-        acao = None
-        # state = state
-        reward = None
-
-    def addAcao(self,acao):
-        if self.estagioAtual == 'aceitaAcao':
-            # proxima tuple
-            # colocar acao
-            self.estagioAtual = 'aceitaState'
-        else:
-            self.estagioAtual = 'Error'
-    def addState(self,state):
-        if self.estagioAtual == 'aceitaState':
-            # colocar estado
-            self.estagioAtual = 'aceitaReward'
-        else:
-            self.estagioAtual = 'Error'
-
-    def addReward(self,reward):
-        if self.estagioAtual == 'aceitaReward':
-            # colocar reward(estado, estado da linha de cima)
-            self.estagioAtual = 'aceitaAcao'
-        else:
-            self.estagioAtual = 'Error'
-
-class EstadosDB:
-    def __init__(self, arq='estados.fs'):
-        self.storage = FS.FileStorage(arq)  # armazena os dados fisicamente no arquivo .fs
-        self.db = ZODB.DB(self.storage)  # encapsula o objeto de armazenamento (storage), além de prover o comportamento do DB
-        self.conn = self.db.open()  # começa uma conexão com o DB a fim de podermos realizar transações
-        self.dbroot = self.conn.root()  # o objeto root funciona como um namespace para todos os outros contêineres do DB
-        if 'estados' not in self.dbroot.keys():
-            self.dbroot['estados'] = OOBTree()
-        self.estados = self.dbroot['estados']
-
-    def get_estado(self, turno, samurais, tabuleiro, budget, player):
-        # calcula o hash
-        string = str(turno)
-        for i in range(len(samurais)):
-            for j in range(5):
-                string += str(samurais[i][j])
-        for i in range(len(tabuleiro)):
-            for j in range(len(tabuleiro)):
-                string += str(tabuleiro[i][j])
-        string += str(budget)
-        string += str(player)
-
-        h = hashlib.sha256(string.encode()).hexdigest()
-
-        if h in self.estados.keys():
-            return self.estados[h]
-        else:
-            novo_estado = Estado(turno, samurais, tabuleiro, budget, player)
-            self.estados[h] = novo_estado
-            transaction.commit()
-            return novo_estado
-
-    def encerrar(self):
-        self.conn.close()
-        self.db.close()
-        self.storage.close()
+if __name__ == '__main__':
+    a = AI(player=0, em_treinamento=True)
+    a.treinar()
