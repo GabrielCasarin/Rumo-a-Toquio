@@ -6,8 +6,6 @@
 ##                                                              ##
 ##################################################################
 
-#teste
-
 import json
 import socket
 import select
