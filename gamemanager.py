@@ -354,7 +354,6 @@ class Samurai:
         self.treat = 18 + 1
 
     def action(self, acao, budget):
-
         cont = False
         custo = 0
         msg = 'Sem budget suficiente'
@@ -584,8 +583,8 @@ def main_ia():
 
     game = Game()
 
-    IA_1 = AI(player=0, treinar=True)
-    IA_2 = AI(player=1, treinar=False)
+    IA_1 = AI(player=0)
+    IA_2 = AI(player=1)
 
     score1 = 0
     score2 = 0
