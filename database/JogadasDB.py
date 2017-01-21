@@ -7,7 +7,6 @@
 ##################################################################
 
 import os
-
 import hashlib
 
 from BTrees.OOBTree import OOBTree
@@ -33,58 +32,35 @@ class JogadasDB:
         self.jogos = self.dbroot['jogos']
 
     def addJogo(self):
-        self.estagioAtual = 'aceitaState'
+        # grava o estado inicial, inicialmente
+        # cria um registro para o novo jogo
         self.idJogo = len(self.jogos)
         self.jogos[self.idJogo] = IOBTree()
         self.jogoAtual = self.jogos[self.idJogo]
-        self.jogoAtual[0] = OOBTree()
-        self.jogadaAtual = self.jogoAtual[0]
-        # default
-        self.jogadaAtual['estado'] = None
-        self.jogadaAtual['acao'] = None
-        self.jogadaAtual['reward'] = None
-
-        transaction.commit()
-
-    def addAcao(self, acao):
-        if self.estagioAtual == 'aceitaAcao':
-            # proxima tuple
-            # colocar acao
-            self.estagioAtual = 'aceitaState'
-            numJogada = len(self.jogoAtual)
-            self.jogoAtual[numJogada] = OOBTree()
-            self.jogadaAtual = self.jogoAtual[numJogada]
-            self.jogadaAtual['acao'] = acao
-            self.jogadaAtual['estado'] = None
-            self.jogadaAtual['reward'] = None
-            transaction.commit()
-        else:
-            self.estagioAtual = 'Error'
 
     def addState(self, state):
-        if self.estagioAtual == 'aceitaState':
-            # colocar estado
-            self.estagioAtual = 'aceitaReward'
-            self.jogadaAtual['estado'] = state.copy()
-            # transaction.commit()
-        else:
-            self.estagioAtual = 'Error'
+        # cria uma nova linha e colocar estado nela
+        if len(self.jogoAtual) > 0:
+            self.jogadaAnterior = self.jogadaAtual
+        numJogada = len(self.jogoAtual)
+        self.jogoAtual[numJogada] = OOBTree()
+        self.jogadaAtual = self.jogoAtual[numJogada]
+        # colocar estado
+        self.jogadaAtual['estado'] = state.copy()
+
+    def addAcao(self, acao):
+        # colocar acao na linha atual
+        self.jogadaAtual['acao'] = acao
 
     def addReward(self, reward):
-        if self.estagioAtual == 'aceitaReward':
-            # colocar reward(estado, estado da linha de cima)
-            self.estagioAtual = 'aceitaAcao'
-            self.jogadaAtual['reward'] = reward
-            # transaction.commit()
-        else:
-            self.estagioAtual = 'Error'
+        # colocar reward na linha anterior
+        self.jogadaAnterior['reward'] = reward
 
-    def ultimoState(self):
-        if len(self.jogoAtual) == 1:
-            return None
-        else:
-            jogadaAnterior = len(self.jogoAtual) - 2
-            self.jogoAtual[jogadaAnterior]['estado']
+    def ultima_acao(self):
+        return self.jogadaAnterior['acao']
+
+    def ultimo_estado(self):
+        return self.jogadaAnterior['estado']
 
     def imprimir_jogo(self, idJogo):
         for i in range(len(self.jogos[idJogo])):
@@ -100,3 +76,6 @@ class JogadasDB:
         self.conn.close()
         self.db.close()
         self.storage.close()
+
+    def commit(self):
+        transaction.commit()
