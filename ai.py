@@ -21,11 +21,31 @@ from simulador import Simulador
 
 from config import *
 
+
+import gui_ia as gui
+
 randomizar = True
 
 
 class AI:
     def __init__(self, player, em_treinamento=False, camadas=[82, 40, 30]):
+
+        # inicializa a AI:
+
+        # possui os atributos:
+
+        #   player (0 ou 1)
+        #   em_treinamento (True or False)
+
+        #   Q   (rede neural s->Q)
+        #   epsilon (parametro para a politica epsilon greed)
+
+        #   jogosDB (ponteiro para o BD de jogosDB)
+        #   simulador (ponteiro para o simulador)
+
+        #   estado_anterior
+        #   estado
+
         super(AI, self).__init__()
         self.player = player    # 0 ou 1 ~~ para indicar quem voce eh
         self.em_treinamento = em_treinamento  # boolean
@@ -54,10 +74,17 @@ class AI:
 
         self.simulador = Simulador()
 
-        self.estado_anterior = None
         self.estado = None
+        self.estadoLinha = None
 
     def set_turn(self, msg):
+
+        # recebe um turno no protocolo oficial de texto
+        # mostra o turno numa gui
+        # atualiza estado
+
+        gui.cliente(msg)
+
         msg = msg.split('\n')
 
         turno = int(msg[0])
@@ -78,26 +105,40 @@ class AI:
 
     def get_comandos(self):
 
-        #s -> a
-        #s, a -> s'
-        #s, a, s' -> R
-
+        #inicializa as variaveis a serem usadas
         listaAcao = []
         acao = -1
         sam = -1
 
-        self.simulador.estado = self.estado
+        s = None
+        if self.player == 0:
+            s = self.jogosDB.ultimo_estado()
+        sLinha = self.estado
+        print('s:', s)
 
-        while self.estado.budget >= 0 and acao != 0:
-            if self.player == 0: # se é a IA sendo treinada
-                self.jogosDB.addState(self.estado)
-                if self.estado_anterior is not None:
-                    r = self.reward(self.estado, self.jogosDB.ultima_acao(), self.estado_anterior)
+        while acao != 0 and sLinha.budget >= 0:
+
+            #se está no loop, é porque está em um estado jogável
+            #logo:
+            #hora de armazenar estado
+            if self.player == 0:
+                self.jogosDB.addState(sLinha)
+
+            #s, acao, s' -> R
+            if s != None:
+                print('ooooooi')
+                print(s)
+                r = self.reward(s,acao,sLinha)
+                
+                #com exceção do loop da primeira rodada, deve-se armazenar todos os rewards
+                #hora de armazenar reward
+                if self.player == 0:
                     self.jogosDB.addReward(r)
-                print('armazenamento budget: ', self.estado.budget)
-
+                        
+            s = sLinha.copy()
+            #s -> acao
+            
             vectQ = self.Q.predict(self.estado.to_vect())[0]
-
             if not listaAcao:
                 i = np.argmax(vectQ)
                 sam = i // 10
@@ -106,15 +147,23 @@ class AI:
                 vectQ = vectQ[10 * sam:10 * sam + 10]
                 i = np.argmax(vectQ)
             acao = i % 10
+            listaAcao.append(str(acao))
 
+            #toda acao decidida deve ser armazenada
+            #logo:
+            #hora de armazenar acao
             if self.player == 0:
                 self.jogosDB.addAcao(i)
 
-            listaAcao.append(str(acao))
 
-            self.simulador.atuar(sam, acao)
-            self.estado_anterior = self.estado
-            self.estado = self.simulador.estado
+            #s, acao -> sSim
+
+            self.simulador.estado = s.copy()
+            self.simulador.atuar(sam,acao)
+            sSim = self.simulador.estado
+
+            sLinha = sSim
+
 
         print(listaAcao)
 
@@ -124,47 +173,52 @@ class AI:
 
         #depende da acao  TODO
         rAcao = -0.1    # (1) reward Acao
-        rAcaoInv = -5   # (2) reward Acao Invalida
+        #rAcaoInv = -5   # (2) reward Acao Invalida
+        rAcao0 = +0.8   #(tmp2) reward por finalizar acao com 0
 
         #depende do estado
         rEuCqN  = +1    # (3) reward Eu         Conquistar  Neutro
         rEuCqI  = +2    # (4) reward Eu         Conquistar  Inimigo
         rICqN   = -1    # (5) reward Inimigo    Conquistar  Neutro
         rICqEu  = -2    # (6) reward Inimigo    Conquistar  Eu
-        rEuKI = +10     # (7) reward Eu         kill        Inimigo
-        rIKEu = -10     # (8) reward Inimigo    kill        Eu
+        rTII    = +3    # (7) reward turnos     Inimigo     Injuried
+        rTEuI   = -3    # (8) reward turnos     Eu          Injuried
 
-        reward = 0
-        # if False: # (1)
-        #     reward += rAcao
+        
+        reward = rAcao #(1)
+        
         # if False: # (2)
         #     reward += rAcaoInv
-        # if False: # (3)
-        #     #for area eu conquista neutra
-        #     reward += rEuCqN
-        # if False: # (4)
-        #     #for area eu conquista inimigo
-        #     reward += rEuCqI
-        # if False: # (5)
-        #     #for area ininigo conquista neutro
-        #     reward += rICqN
-        # if False: # (6)
-        #     #for area inimigo conquista eu
-        #     reward += rICqEu
-        # if False: # (7)
-        # # if is enemy.sam in sNovo.samurais injuried and sVelho.samurai not injuried
-        #     reward += rIKEu
-        # if False: # (8)
-        # # if is meu.sam in sNovo.samurais injuried and sVelho.samurai not injuried
-        #     reward += rEuKI
 
-        return self.i
+        if False: # (tmp2)
+            reward += rAcao0
+        
+        for x in range(SIZE):
+            for y in range(SIZE):
+                if s.tabuleiro[y][x] in [8] and sL.tabuleiro[y][x] in [0,1,2]: #(3)
+                    reward += rEuCqN
+                if s.tabuleiro[y][x] in [3,4,5] and sL.tabuleiro[y][x] in [0,1,2]: #(4)
+                    reward += rEuCqI
+                if s.tabuleiro[y][x] in [8] and sL.tabuleiro[y][x] in [3,4,5]: #(5)
+                    reward += rICqN
+                if s.tabuleiro[y][x] in [0,1,2] and sL.tabuleiro[y][x] in [3,4,5]: #(6)
+                    reward += rICqEu
+
+        for i in range(len(sL.samurais)):
+            for j in range(3):
+                reward += rTII  #(7)
+            for j in range(3,5):
+                reward += rTEuI #(8)
+
+        return reward
 
     def set_scores(self, scoreEu, scoreInim):
-        self.jogosDB.estagioAtual = 'aceitaReward' # xD
-        self.jogosDB.addReward(10*(scoreEu - scoreInim))
-        self.jogosDB.commit()
-        self.jogosDB.close()
+        if self.player == 0:
+            self.jogosDB.estagioAtual = 'aceitaReward' # xD
+            self.jogosDB.addRewardScore(10*(scoreEu - scoreInim))
+            self.jogosDB.commit()
+            self.jogosDB.close()
+
 
     def treinar(self):
         batch_size = 16

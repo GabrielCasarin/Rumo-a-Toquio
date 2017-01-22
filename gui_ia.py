@@ -51,15 +51,6 @@ myfont = pygame.font.SysFont("arial", 15)
 
 pygame.display.update()
 
-turn_info = open("info7.txt").read()
-
-separado = turn_info.split('\n')
-
-
-turno_separado=separado[0] #pegando apenas a parte do tabuleiro da string status
-samurais_separados=separado[1:7] #pegando apenas a parte do tabuleiro da string status
-tabuleiro_separado=separado[7:14] #pegando apenas a parte do tabuleiro da string status
-
 
 class Board:
     def __init__(self, n):
@@ -87,7 +78,6 @@ class Board:
             tabuleiro_separado[j] = tabuleiro_separado[j].split()
             for i in range(len(tabuleiro_separado[j])):
                 self[i, j]['cor'] = cores[tabuleiro_separado[j][i]]
-
 
 class Samurai(pygame.sprite.Sprite):
     def __init__(self, num):
@@ -196,20 +186,27 @@ class Samurai(pygame.sprite.Sprite):
             hRect = hImg.get_rect(center=(centerStat[0]+11,centerStat[1]-11))
             SCREEN.blit(hImg,hRect)
 
+def cliente(turn_info):
+
+    separado = turn_info.split('\n')
+
+    turno_separado=separado[0] #pegando apenas a parte do tabuleiro da string status
+    samurais_separados=separado[1:7] #pegando apenas a parte do tabuleiro da string status
+    tabuleiro_separado=separado[7:14] #pegando apenas a parte do tabuleiro da string status
+
+    b=Board(7)
+    b.setBoard(tabuleiro_separado)
+    b.draw(SCREEN)
 
 
-b=Board(7)
-b.setBoard(tabuleiro_separado)
-b.draw(SCREEN)
+    samurais = [Samurai(i) for i in range(6)]
 
 
-samurais = [Samurai(i) for i in range(6)]
+    for i in range (6):
+        dados_samurai=(samurais_separados[i]).split(' ')
+        samurais[i].update(b, dados_samurai[0], dados_samurai[1], 
+            dados_samurai[2], dados_samurai[3], dados_samurai[4])
 
+    pygame.display.update()
 
-for i in range (6):
-    dados_samurai=(samurais_separados[i]).split(' ')
-    samurais[i].update(b, dados_samurai[0], dados_samurai[1], 
-        dados_samurai[2], dados_samurai[3], dados_samurai[4])
-
-pygame.display.update()
-
+    pygame.time.delay(0)

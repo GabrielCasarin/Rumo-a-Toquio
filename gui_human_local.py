@@ -149,7 +149,6 @@ class Samurai(pygame.sprite.Sprite):
             hRect = hImg.get_rect(center=(centerStat[0]+11,centerStat[1]-11))
             SCREEN.blit(hImg,hRect)
 
-
 class Board:
     def __init__(self, n):
         super(Board, self).__init__()
@@ -169,7 +168,6 @@ class Board:
         for casa in self.casas.values():
             pygame.draw.rect(surface, casa["cor"], casa["rect"])
             pygame.draw.rect(surface, (0,0,0), casa["rect"].copy(), 1)
-
 
 class ButtonSamurai(pygame.sprite.Sprite):
     def __init__(self):
@@ -220,7 +218,6 @@ class ButtonSamurai(pygame.sprite.Sprite):
         if update:
             pygame.display.update()
 
-
 class Acao(pygame.sprite.Sprite):
     def __init__(self,num,update=False):
 
@@ -269,7 +266,6 @@ class Acao(pygame.sprite.Sprite):
 
         if update:
             pygame.display.update()
-
 
 class OrderList(pygame.sprite.Sprite):
 
@@ -368,7 +364,6 @@ class OrderList(pygame.sprite.Sprite):
             #print(self)
             pygame.display.update()
 
-
 class Turno(pygame.sprite.Sprite):
 
     def __init__(self,):
@@ -400,35 +395,32 @@ class Turno(pygame.sprite.Sprite):
             pygame.display.update()
 
 
-
-SCREEN.fill([220,220,220])
-
-#definindo a surface
-screen = SCREEN
-
-#definindo o tabuleiro
-board = Board(SIZE)
-
-#definindo o turno e seu display
-turn = Turno()
-
-#definindo os 6 samurais
-samurais = [Samurai(i) for i in range(6)]
-
-#definindo as acoes
-acoes = [Acao(i) for i in range(11)]
-
-#definindo a lista de ordens
-orderList = OrderList()
-
-#definindo o botão que escolhe o samurai
-buttonSamurai = ButtonSamurai()
-
-
 def cliente(s, numPlayer):
     #definindo se o player é o Player 1 ou o Player 2
 
 
+    SCREEN.fill([220,220,220])
+
+    #definindo a surface
+    screen = SCREEN
+
+    #definindo o tabuleiro
+    board = Board(SIZE)
+
+    #definindo o turno e seu display
+    turn = Turno()
+
+    #definindo os 6 samurais
+    samurais = [Samurai(i) for i in range(6)]
+
+    #definindo as acoes
+    acoes = [Acao(i) for i in range(11)]
+
+    #definindo a lista de ordens
+    orderList = OrderList()
+
+    #definindo o botão que escolhe o samurai
+    buttonSamurai = ButtonSamurai()
 
     s = s.split('\n')
 
