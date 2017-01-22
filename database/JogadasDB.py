@@ -34,43 +34,57 @@ class JogadasDB:
     def addJogo(self):
         # grava o estado inicial, inicialmente
         # cria um registro para o novo jogo
-        self.idJogo = len(self.jogos)
-        self.jogos[self.idJogo] = IOBTree()
-        self.jogoAtual = self.jogos[self.idJogo]
+        self.id = len(self.jogos)
+        self.jogos[self.id] = IOBTree()
+        self.match = self.jogos[self.id]
 
     def addState(self, state):
         # cria uma nova linha e colocar estado nela
-        if len(self.jogoAtual) > 0:
-            self.jogadaAnterior = self.jogadaAtual
-        numJogada = len(self.jogoAtual)
-        self.jogoAtual[numJogada] = OOBTree()
-        self.jogadaAtual = self.jogoAtual[numJogada]
+        print('ADICIONANDO UM ESTADO')
+        if len(self.match) > 0:
+            self.rodadaAnterior = self.rodadaAtual
+        numJogada = len(self.match)
+        self.match[numJogada] = OOBTree()
+        self.rodadaAtual = self.match[numJogada]
+
         # colocar estado
-        self.jogadaAtual['estado'] = state.copy()
+        self.rodadaAtual['estado'] = state.copy()
+
+        #transaction.commit()
 
     def addAcao(self, acao):
         # colocar acao na linha atual
-        self.jogadaAtual['acao'] = acao
+        self.rodadaAtual['acao'] = acao
+        #transaction.commit()
 
     def addReward(self, reward):
         # colocar reward na linha anterior
-        self.jogadaAnterior['reward'] = reward
+        self.rodadaAnterior['reward'] = reward
+        #transaction.commit()
+
+    def addRewardScore(self, reward):
+        # colocar reward na linha atual
+        self.rodadaAtual['reward'] = reward
+        transaction.commit()
 
     def ultima_acao(self):
-        return self.jogadaAnterior['acao']
+        return self.rodadaAnterior['acao']
 
     def ultimo_estado(self):
-        return self.jogadaAnterior['estado']
+        if len(self.match) == 0:
+            return None
+        else:
+            return self.rodadaAnterior['estado']
 
-    def imprimir_jogo(self, idJogo):
-        for i in range(len(self.jogos[idJogo])):
-            jogada = self.jogos[idJogo][i]
-            print('Jogada', i)
-            print('Acao:', jogada['acao'])
+    def imprimir_jogo(self, id):
+        for i in range(len(self.jogos[id])):
+            rodada = self.jogos[id][i]
+            print('Rodada', i)
+            print('Acao:', rodada['acao'])
             print('Estado:')
-            print(jogada['estado'])
-            print('Reward:', jogada['reward'])
-            print()
+            print(rodada['estado'])
+            print('Reward:', rodada['reward'])
+            print('\n\n')
 
     def close(self):
         self.conn.close()
