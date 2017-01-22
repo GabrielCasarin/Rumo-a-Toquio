@@ -6,7 +6,6 @@
 ##                                                              ##
 ##################################################################
 
-from server import Server
 from util import distancia
 from config import *
 
@@ -513,70 +512,4 @@ class Samurai:
         return True, 'Jogada valida'
 
 
-
-def main_human():
-
-    #FUNCAO A IMPLEMENTAR:
-    #PASSAR msg PARA O CLIENT PARA ELE IMPRIMIR NA TELA DO JOGADOR
-    #usar o final do protocolo
-
-    score1 = 0
-    score2 = 0
-    msg1 = 'Bom Jogo!'
-    msg2 = 'Bom Jogo!'
-
-    server = Server()
-    server.aguardar_jogadores()
-
-    game = Game()
-
-    for partida in range (2):
-
-        game.__init__()
-
-        while game.turn < MAX_TURN:
-
-
-            if partida == 0:
-                turno_player = game.turn%2 + 1
-            elif partida == 1:
-                turno_player = 2-game.turn%2
-
-            if TOTALMENTE_OBSERVAVEL:
-                if COMENTARIO:
-                    server.send_turn(1, game.view(-1)+'\n'+msg1)
-                    server.send_turn(2, game.view(-2)+'\n'+msg2)
-                else:
-                    server.send_turn(1, game.view(-1))
-                    server.send_turn(2, game.view(-2))
-            else:
-                if COMENTARIO:
-                    server.send_turn(1, game.view(1)+'\n'+msg1)
-                    server.send_turn(2, game.view(2)+'\n'+msg2)
-                else:
-                    server.send_turn(1, game.view(1))
-                    server.send_turn(2, game.view(2))
-
-            print('Turno {}: player {}'.format(game.turn, turno_player))
-
-
-
-            comando = server.recv_comandos(turno_player)
-
-            if turno_player == 1:
-                game.p1.order(comando)
-            else:
-                game.p2.order(comando)
-
-            game.turn += 1
-            if game.turn%6 == 0:
-                game.clearOrderStat()
-
-            game.heal()
-
-        score1 += game.score(1)
-        score2 += game.score(2)
-
-        server.send_scores(score1, score2)
-
-# main()
+#AGORA O MAIN ESTÁ em main.py
