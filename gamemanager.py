@@ -10,6 +10,8 @@ from server import Server
 from util import distancia
 from config import *
 
+# from human import Human
+# from ai import AI
 
 class Game:
     #criar tabuleiro:
@@ -285,7 +287,7 @@ class Jogador:
 
         #print(msg)
 
-        return msg
+        #return msg
 
 
 class Samurai:
@@ -511,7 +513,8 @@ class Samurai:
         return True, 'Jogada valida'
 
 
-def main():
+
+def main_human():
 
     #FUNCAO A IMPLEMENTAR:
     #PASSAR msg PARA O CLIENT PARA ELE IMPRIMIR NA TELA DO JOGADOR
@@ -561,9 +564,9 @@ def main():
             comando = server.recv_comandos(turno_player)
 
             if turno_player == 1:
-                msg1 = game.p1.order(comando)
+                game.p1.order(comando)
             else:
-                msg2 = game.p2.order(comando)
+                game.p2.order(comando)
 
             game.turn += 1
             if game.turn%6 == 0:
@@ -577,65 +580,3 @@ def main():
         server.send_scores(score1, score2)
 
 # main()
-
-def main_ia():
-    from ai import AI
-
-    game = Game()
-
-    IA_1 = AI(player=0)
-    IA_2 = AI(player=1)
-
-    score1 = 0
-    score2 = 0
-
-    for partida in range(1):
-
-        game.__init__()
-
-        while game.turn < MAX_TURN:
-
-            print('~~~~TURNO:  ', game.turn)
-
-            if partida == 0:
-                turno_player = game.turn%2 + 1
-            elif partida == 1:
-                turno_player = 2-game.turn%2
-
-            if turno_player == 1: #IA_1
-                IA = IA_1
-            else:
-                IA = IA_2
-
-            if TOTALMENTE_OBSERVAVEL:
-                IA.set_turn(game.view(-turno_player))
-            else:
-                IA.set_turn(game.view(turno_player))
-
-            comando = IA.get_comandos()
-
-            if turno_player == 1:
-                msg1 = game.p1.order(comando)
-            else:
-                msg2 = game.p2.order(comando)
-
-            print('\n' + game.view(-1) + '\n')
-
-            game.turn += 1
-            if game.turn%6 == 0:
-                game.clearOrderStat()
-
-            game.heal()
-
-        score1 += game.score(1)
-        score2 += game.score(2)
-
-    print('\nSCORES:')
-    print('Player1', score1)
-    print('Player2', score2)
-
-
-    IA_1.set_scores(score1, score2)
-
-if __name__ == '__main__':
-    main_ia()

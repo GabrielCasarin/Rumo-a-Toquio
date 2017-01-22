@@ -8,6 +8,8 @@
 
 import os.path
 
+
+
 import numpy as np
 import keras.models
 from keras.models import Sequential
@@ -20,6 +22,7 @@ from simulador import Simulador
 from config import *
 
 randomizar = True
+
 
 class AI:
     def __init__(self, player, em_treinamento=False, camadas=[82, 40, 30]):
@@ -204,6 +207,6 @@ class AI:
         self.jogosDB.close()
 
 
-if __name__ == '__main__':
-    a = AI(player=0, em_treinamento=True)
-    a.treinar()
+# if __name__ == '__main__':
+#     a = AI(player=0, em_treinamento=True)
+#     a.treinar()
