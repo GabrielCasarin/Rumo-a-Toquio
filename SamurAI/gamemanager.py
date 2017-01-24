@@ -6,8 +6,8 @@
 ##                                                              ##
 ##################################################################
 
-from util import distancia
-from config import *
+from .util import distancia
+from .config import *
 
 # from human import Human
 # from ai import AI

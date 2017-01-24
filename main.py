@@ -1,7 +1,8 @@
-from gamemanager import *
+import sys
 
-from human import Human
-from ai import AI
+from SamurAI.gamemanager import *
+from SamurAI.human import Human
+from SamurAI.ai import AI
 
 def main_human_server():
         
@@ -124,21 +125,17 @@ def main(modo = 'IH', numPartidas = 2): #substituir todos os outros mains
         main_human()
         return
     
-    from ai import AI
+    # from .ai import AI
     if modo == 'HH':
-        from human import Human
         player0 = Human(player=0)
         player1 = Human(player=1)
     elif modo == 'HI':
-        from human import Human
         player0 = Human(player=0)
         player1 = AI(player=1)
     elif modo == 'IH':
-        from human import Human
         player0 = AI(player=0)
         player1 = Human(player=1)
     elif modo == 'II':
-        from ai import AI
         main_ia()
         return
     else:
@@ -193,4 +190,6 @@ def main(modo = 'IH', numPartidas = 2): #substituir todos os outros mains
     player0.set_scores(score0, score1)
     player1.set_scores(score0, score1)
 
-main('II')
+if __name__ == '__main__':
+    argumento = sys.argv[1]
+    main(argumento)

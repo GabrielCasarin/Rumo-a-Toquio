@@ -8,21 +8,19 @@
 
 import os.path
 
-
-
 import numpy as np
 import keras.models
 from keras.models import Sequential
 from keras.layers import Dense, Activation
 
-from database.JogadasDB import JogadasDB
-from database.EstadosDB import Estado
-from simulador import Simulador
+from .database.JogadasDB import JogadasDB
+from .database.EstadosDB import Estado
+from .simulador import Simulador
 
-from config import *
+from .config import *
 
 
-import gui_ia as gui
+from .interface import gui_ia as gui
 
 randomizar = True
 

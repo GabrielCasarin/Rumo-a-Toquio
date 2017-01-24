@@ -6,8 +6,8 @@
 ##                                                              ##
 ##################################################################
 
-from config import *
-import gui_human_local as gui
+from .config import *
+from .interface import gui_human_local as gui
 
 class Human:
     def __init__(self, player):

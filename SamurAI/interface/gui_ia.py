@@ -12,18 +12,18 @@ import pygame
 pygame.init()
 
 
-from config import *
+from ..config import *
 
 PRINT_DADOS = True
 
-with open('config/config.json') as jfile:
+with open('./SamurAI/config/config.json') as jfile:
     config = json.load(jfile)
     cores = config['cores']
     IMG_NAMES = config['IMG_SamurAI-Images']
     IMG_NAMES_BUTTONS = config['IMG_buttons-Images']
     IMG_NAMES_INFO = config['IMG_info-Images']
 
-pygame.display.set_icon(pygame.image.load("images/SamurAI-Images/Icon.png"))
+pygame.display.set_icon(pygame.image.load("./SamurAI/images/SamurAI-Images/Icon.png"))
 pygame.display.set_caption('Samurai3x3 AI Battle')
 
 SCREEN      = pygame.display.set_mode((800,600))
@@ -31,17 +31,17 @@ SCREEN      = pygame.display.set_mode((800,600))
 SCREEN.fill([220,220,220])
 
 IMAGES      = {
-                name: pygame.image.load("images/SamurAI-Images/{}.png".format(name)).convert_alpha()
+                name: pygame.image.load("./SamurAI/images/SamurAI-Images/{}.png".format(name)).convert_alpha()
                 for name in IMG_NAMES
                 }
 
 IMAGES_BUTTONS = {
-                name: pygame.image.load("images/buttons-Images/{}.png".format(name)).convert_alpha()
+                name: pygame.image.load("./SamurAI/images/buttons-Images/{}.png".format(name)).convert_alpha()
                 for name in IMG_NAMES_BUTTONS
                 }
 
 IMAGES_INFO = {
-                name: pygame.image.load("images/info-Images/{}.png".format(name)).convert_alpha()
+                name: pygame.image.load("./SamurAI/images/info-Images/{}.png".format(name)).convert_alpha()
                 for name in IMG_NAMES_INFO
                 }
 
@@ -190,9 +190,9 @@ def cliente(turn_info):
 
     separado = turn_info.split('\n')
 
-    turno_separado=separado[0] #pegando apenas a parte do tabuleiro da string status
-    samurais_separados=separado[1:7] #pegando apenas a parte do tabuleiro da string status
-    tabuleiro_separado=separado[7:14] #pegando apenas a parte do tabuleiro da string status
+    turno_separado = separado[0] #pegando apenas a parte do tabuleiro da string status
+    samurais_separados = separado[1:7] #pegando apenas a parte do tabuleiro da string status
+    tabuleiro_separado = separado[7:14] #pegando apenas a parte do tabuleiro da string status
 
     b=Board(7)
     b.setBoard(tabuleiro_separado)
@@ -209,4 +209,4 @@ def cliente(turn_info):
 
     pygame.display.update()
 
-    pygame.time.delay(0)
+    pygame.time.delay(1000)

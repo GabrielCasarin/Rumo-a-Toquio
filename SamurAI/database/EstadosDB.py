@@ -145,10 +145,29 @@ class Estado(persistent.Persistent):
         return novo_estado
 
     def __str__(self):
-        s = 'turno: ' + str(self.turno) + '\n'
-        s += 'samurais:\n'
-        for sam in self.samurais:
-            s += '    {0[0]} {0[1]} {0[2]} {0[3]} {0[4]}\n'.format(sam)
-        s+= 'budget: ' + str(self.budget)
+        #string do turno
+        sT = str(self.turno)
+
+        #strin dos samurais
+        sS = ''
+
+        for samurai in self.samurais:
+            sS += '\n'
+            sS += str(samurai[0]) + ' '#x
+            sS += str(samurai[1]) + ' '#y
+            sS += str(samurai[2]) + ' '#orderstatus
+            sS += str(samurai[3]) + ' '#showingstatus
+            sS += str(samurai[4])       #treatmentturn
+
+
+        #string do tabuleiro(Mapa)
+        sM =''
+        for y in range(len(self.tabuleiro)):
+            sM += '\n'
+            for x in range(len(self.tabuleiro)-1):
+                sM += str(self.tabuleiro[y][x]) + ' '
+            sM += str(self.tabuleiro[y][len(self.tabuleiro)-1])
+
+        s = sT + sS + sM
 
         return s

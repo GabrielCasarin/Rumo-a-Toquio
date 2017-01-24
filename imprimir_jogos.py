@@ -1,7 +1,22 @@
-from database.JogadasDB import JogadasDB
+import sys
 
-j = JogadasDB()
+from SamurAI.database.JogadasDB import JogadasDB
+from SamurAI.interface import gui_ia as gui
 
-j.imprimir_jogo(len(j.jogos) - 1)
 
-j.close()
+def imprimir_jogo(num_match):
+    j = JogadasDB()
+    for i in range(len(j.jogos[num_match])):
+        rodada = j.jogos[num_match][i]
+        print('Rodada', i)
+        print('Acao:', rodada['acao'])
+        print('Estado:')
+        print(rodada['estado'])
+        print('Reward:', rodada['reward'])
+        print('\n\n')
+        gui.cliente(str(rodada['estado']))
+
+    j.close()
+
+if __name__ == '__main__':
+    imprimir_jogo(int(sys.argv[1]))

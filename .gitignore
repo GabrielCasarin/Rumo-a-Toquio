@@ -90,5 +90,5 @@ ENV/
 
 *.zip
 
-model*
-tmp/*.fs
+*.h5
+*.fs*

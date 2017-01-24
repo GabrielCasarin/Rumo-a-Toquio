@@ -20,7 +20,7 @@ import persistent
 class JogadasDB:
 
     def __init__(self, arq='Jogos.fs'):
-        self.storage = FS.FileStorage(os.path.join('database','tmp', arq))  # armazena os dados fisicamente no arquivo .fs
+        self.storage = FS.FileStorage(os.path.join('SamurAI', 'database','tmp', arq))  # armazena os dados fisicamente no arquivo .fs
         self.db = ZODB.DB(self.storage)  # encapsula o objeto de armazenamento (storage), além de prover o comportamento do DB
         self.conn = self.db.open()  # começa uma conexão com o DB a fim de podermos realizar transações
         self.dbroot = self.conn.root()  # o objeto root funciona como um namespace para todos os outros contêineres do DB
@@ -50,17 +50,13 @@ class JogadasDB:
         # colocar estado
         self.rodadaAtual['estado'] = state.copy()
 
-        #transaction.commit()
-
     def addAcao(self, acao):
         # colocar acao na linha atual
         self.rodadaAtual['acao'] = acao
-        #transaction.commit()
 
     def addReward(self, reward):
         # colocar reward na linha anterior
         self.rodadaAnterior['reward'] = reward
-        #transaction.commit()
 
     def addRewardScore(self, reward):
         # colocar reward na linha atual
@@ -75,16 +71,6 @@ class JogadasDB:
             return None
         else:
             return self.rodadaAnterior['estado']
-
-    def imprimir_jogo(self, id):
-        for i in range(len(self.jogos[id])):
-            rodada = self.jogos[id][i]
-            print('Rodada', i)
-            print('Acao:', rodada['acao'])
-            print('Estado:')
-            print(rodada['estado'])
-            print('Reward:', rodada['reward'])
-            print('\n\n')
 
     def close(self):
         self.conn.close()

@@ -6,7 +6,7 @@
 ##                                                              ##
 ##################################################################
 
-from gamemanager import Game, Jogador, Samurai
+from .gamemanager import Game, Jogador, Samurai
 
 
 class Simulador:
