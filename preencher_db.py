@@ -12,16 +12,14 @@ from SamurAI.ai import AI
 import sys
 import time
 
-
 def main(num_jogos, numPartidas=1, graphical=False):
 
     game = Game()
 
     KARDAMEL = AI(model='KARDAMEL', armazenar_dados=True)
-    IA_ENEMY = AI(model='random')
+    IA_ENEMY = AI(model='randomIA')
 
     t = time.time()
-
 
     for i in range (num_jogos):
         #print("Jogo: {}".format(i))
@@ -60,8 +58,6 @@ def main(num_jogos, numPartidas=1, graphical=False):
                 else:
                     game.p2.order(comando)
 
-                #print('\n' + game.view(-1) + '\n')
-
                 game.turn += 1
                 if game.turn%6 == 0:
                     game.clearOrderStat()
@@ -71,8 +67,8 @@ def main(num_jogos, numPartidas=1, graphical=False):
             score0 += game.score(1)
             score1 += game.score(2)
 
-        # print('Score: player0', score0)
-        # print('SCore: player1', score1, '\n')
+        #print('Score: player0', score0)
+        #print('SCore: player1', score1, '\n')
 
         KARDAMEL.set_scores(score0, score1)
         IA_ENEMY.set_scores(score0, score1)

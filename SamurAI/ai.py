@@ -28,7 +28,7 @@ class AI:
 
         # possui os atributos:
 
-        #   armazenar_dados (0 ou 1)
+        #   armazenar_dados (True or False)
         #   em_treinamento (True or False)
 
         #   Q   (rede neural s->Q)
@@ -56,8 +56,8 @@ class AI:
         DIR = './Samurai/database/IAs/'
 
         if nome_arq == 'randomIA.h5':
-            numModels = len([name for name in os.listdir(DIR) if os.path.isfile(os.path.join(DIR, name)) and 'model' in name])
-            print(numModels)
+            numModels = len([name for name in os.listdir(DIR) if (
+                os.path.isfile(os.path.join(DIR, name)) and 'model' in name)])
             if numModels > 0:
                 nome_arq = 'model_' + str(random.randrange(numModels))
             else:
@@ -87,7 +87,6 @@ class AI:
 
             # SALVANDO O MODELO COM NOME DEFINIDO
             self.Q.save(DIR+nome_arq)
-
 
 
         self.epsilon = 0.2
@@ -151,11 +150,10 @@ class AI:
 
             #s, acao, s' -> R
             if s != None:
-                r = self.reward(s,acao,sLinha)
-                
                 #com exceção do loop da primeira rodada, deve-se armazenar todos os rewards
                 #hora de armazenar reward
                 if self.armazenar_dados:
+                    r = self.reward(s,self.jogosDB.ultima_acao(),sLinha)
                     self.jogosDB.addReward(r)
                         
             s = sLinha.copy()
@@ -192,10 +190,9 @@ class AI:
         return ' '.join(listaAcao)
 
     def reward(self, s, a, sL):
-        #depende da acao  TODO
+        #depende da acao
         rAcao = -0.1    # (1) reward Acao
-        #rAcaoInv = -5   # (2) reward Acao Invalida
-        rAcao0 = +0.8   #(tmp2) reward por finalizar acao com 0
+        rAcaoInv = -5   # (2) reward Acao Invalida
 
         #depende do estado
         rEuCqN  = +1    # (3) reward Eu         Conquistar  Neutro
@@ -207,12 +204,9 @@ class AI:
 
         
         reward = rAcao #(1)
-        
-        # if False: # (2)
-        #     reward += rAcaoInv
 
-        if False: # (tmp2)
-            reward += rAcao0
+        if not(a%10 == 10): # (2)
+            reward += rAcaoInv
         
         for x in range(SIZE):
             for y in range(SIZE):
@@ -225,11 +219,10 @@ class AI:
                 if s.tabuleiro[y][x] in [0,1,2] and sL.tabuleiro[y][x] in [3,4,5]: #(6)
                     reward += rICqEu
 
-        for i in range(len(sL.samurais)):
-            for j in range(3):
-                reward += rTII  #(7)
-            for j in range(3,5):
-                reward += rTEuI #(8)
+        for sam in range(0,3):
+            reward += rTII*sL.samurais[sam][4]  #(7)
+        for sam in range(3,6):
+            reward += rTEuI*sL.samurais[sam][4] #(8)
 
         return reward
 
