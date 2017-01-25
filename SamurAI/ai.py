@@ -9,6 +9,7 @@
 import os.path
 
 import numpy as np
+import random
 import keras.models
 from keras.models import Sequential
 from keras.layers import Dense, Activation
@@ -19,18 +20,15 @@ from .simulador import Simulador
 from .config import *
 from .interface import gui_ia as gui
 
-
-randomizar = True
-
-
 class AI:
-    def __init__(self, player, em_treinamento=False, camadas=[82, 40, 30], **kwargs):
+    def __init__(self, em_treinamento=False, camadas=[82, 40, 30], **kwargs):
+    #def __init__(self, armazenar_dados, em_treinamento=False, camadas=[82, 40, 30], **kwargs):
 
         # inicializa a AI:
 
         # possui os atributos:
 
-        #   player (0 ou 1)
+        #   armazenar_dados (0 ou 1)
         #   em_treinamento (True or False)
 
         #   Q   (rede neural s->Q)
@@ -43,30 +41,58 @@ class AI:
         #   estado
 
         super(AI, self).__init__()
-        self.player = player    # 0 ou 1 ~~ para indicar quem voce eh
-        # self.em_treinamento = em_treinamento  # boolean
 
+        if 'armazenar_dados' in kwargs:
+            self.armazenar_dados = kwargs['armazenar_dados']
+        else:
+            self.armazenar_dados = False
+        
         # Rede Neural
         if 'model' in kwargs:
-            nome_arq = kwargs['model']
+            nome_arq = kwargs['model']+'.h5'
         else:
-            nome_arq = 'model%d.h5'%player
+            nome_arq = 'newRandom.h5'
 
-        if os.path.isfile(nome_arq) and not randomizar:
-            self.Q = keras.models.load_model(nome_arq)
-        else:
+        DIR = './Samurai/database/IAs/'
+
+        if nome_arq == 'randomIA.h5':
+            numModels = len([name for name in os.listdir(DIR) if os.path.isfile(os.path.join(DIR, name)) and 'model' in name])
+            print(numModels)
+            if numModels > 0:
+                nome_arq = 'model_' + str(random.randrange(numModels))
+            else:
+                nome_arq = 'model_0'
+
+        if nome_arq == 'newRandom.h5':
+            #CRIANDO UMA REDE NOVA QUE NAO SERÁ SALVA:
             self.Q = Sequential()
             self.Q.add(Dense(output_dim=camadas[1], input_dim=camadas[0]))
             for i in range(1, len(camadas) - 1):
                 self.Q.add(Activation("sigmoid"))
                 self.Q.add(Dense(output_dim=camadas[i + 1]))
             self.Q.compile(loss='mean_squared_error', optimizer='SGD')
-            # salva o modelo para próximas partidas
-            self.Q.save(nome_arq)
+
+
+        elif os.path.isfile(nome_arq):
+            self.Q = keras.models.load_model(DIR + nome_arq)
+            
+        else:
+            #CRIANDO UMA REDE NOVA:
+            self.Q = Sequential()
+            self.Q.add(Dense(output_dim=camadas[1], input_dim=camadas[0]))
+            for i in range(1, len(camadas) - 1):
+                self.Q.add(Activation("sigmoid"))
+                self.Q.add(Dense(output_dim=camadas[i + 1]))
+            self.Q.compile(loss='mean_squared_error', optimizer='SGD')
+
+            # SALVANDO O MODELO COM NOME DEFINIDO
+            self.Q.save(DIR+nome_arq)
+
+
 
         self.epsilon = 0.2
 
-        if self.player == 0:
+        if self.armazenar_dados:
             self.jogosDB = JogadasDB()
             # if not self.em_treinamento:
                 # self.jogosDB.addJogo()
@@ -76,12 +102,13 @@ class AI:
         self.estado = None
         self.estadoLinha = None
 
-    def set_turn(self, msg):
+    def set_turn(self, msg, graphical=True):
         # recebe um turno no protocolo oficial de texto
         # mostra o turno numa gui
         # atualiza estado
 
-        gui.cliente(msg)
+        if graphical:
+            gui.cliente(msg)
 
         msg = msg.split('\n')
 
@@ -98,8 +125,10 @@ class AI:
             for j in range(len(tabuleiro)):
                 tabuleiro[i][j] = int(tabuleiro[i][j])
 
+        player = turno%2
+
         self.estado = Estado(
-            turno, samurais, tabuleiro, MAX_BUDGET, self.player)
+            turno, samurais, tabuleiro, MAX_BUDGET, player)
 
     def get_comandos(self):
         #inicializa as variaveis a serem usadas
@@ -108,28 +137,25 @@ class AI:
         sam = -1
 
         s = None
-        if self.player == 0:
+        if self.armazenar_dados:
             s = self.jogosDB.ultimo_estado()
         sLinha = self.estado
-        print('s:', s)
 
         while acao != 0 and sLinha.budget >= 0:
 
             #se está no loop, é porque está em um estado jogável
             #logo:
             #hora de armazenar estado
-            if self.player == 0:
+            if self.armazenar_dados:
                 self.jogosDB.addState(sLinha)
 
             #s, acao, s' -> R
             if s != None:
-                print('ooooooi')
-                print(s)
                 r = self.reward(s,acao,sLinha)
                 
                 #com exceção do loop da primeira rodada, deve-se armazenar todos os rewards
                 #hora de armazenar reward
-                if self.player == 0:
+                if self.armazenar_dados:
                     self.jogosDB.addReward(r)
                         
             s = sLinha.copy()
@@ -149,7 +175,7 @@ class AI:
             #toda acao decidida deve ser armazenada
             #logo:
             #hora de armazenar acao
-            if self.player == 0:
+            if self.armazenar_dados:
                 self.jogosDB.addAcao(i)
 
 
@@ -161,8 +187,7 @@ class AI:
 
             sLinha = sSim
 
-
-        print(listaAcao)
+        #print(listaAcao)
 
         return ' '.join(listaAcao)
 
@@ -209,11 +234,8 @@ class AI:
         return reward
 
     def set_scores(self, scoreEu, scoreInim):
-        if self.player == 0:
-            self.jogosDB.estagioAtual = 'aceitaReward' # xD
+        if self.armazenar_dados:
             self.jogosDB.addRewardScore(10*(scoreEu - scoreInim))
-            self.jogosDB.commit()
-            self.jogosDB.close()
 
 
     def treinar(self):
@@ -258,5 +280,5 @@ class AI:
 
 
 # if __name__ == '__main__':
-#     a = AI(player=0, em_treinamento=True)
+#     a = AI(armazenar_dados=True, em_treinamento=True)
 #     a.treinar()

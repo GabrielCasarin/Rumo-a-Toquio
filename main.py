@@ -64,8 +64,8 @@ def main_ia():
 
     game = Game()
 
-    IA_0 = AI(player=0)
-    IA_1 = AI(player=1)
+    IA_0 = AI(armazenar_dados=True)
+    IA_1 = AI()
 
     score0 = 0
     score1 = 0

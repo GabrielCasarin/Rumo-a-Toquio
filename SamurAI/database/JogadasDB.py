@@ -31,6 +31,8 @@ class JogadasDB:
 
         self.jogos = self.dbroot['jogos']
 
+        self.JogoAberto = False
+
     def addJogo(self):
         # grava o estado inicial, inicialmente
         # cria um registro para o novo jogo
@@ -38,9 +40,11 @@ class JogadasDB:
         self.jogos[self.id] = IOBTree()
         self.match = self.jogos[self.id]
 
+        self.JogoAberto = True
+
     def addState(self, state):
         # cria uma nova linha e colocar estado nela
-        print('ADICIONANDO UM ESTADO')
+
         if len(self.match) > 0:
             self.rodadaAnterior = self.rodadaAtual
         numJogada = len(self.match)
@@ -61,12 +65,16 @@ class JogadasDB:
     def addRewardScore(self, reward):
         # colocar reward na linha atual
         self.rodadaAtual['reward'] = reward
+        self.JogoAberto = False
         transaction.commit()
 
     def ultima_acao(self):
         return self.rodadaAnterior['acao']
 
     def ultimo_estado(self):
+        if not self.JogoAberto:
+            self.addJogo()
+
         if len(self.match) == 0:
             return None
         else:

@@ -9,11 +9,11 @@ def imprimir_jogo(num_match):
     for i in range(len(j.jogos[num_match])):
         rodada = j.jogos[num_match][i]
         print('Rodada', i)
-        print('Acao:', rodada['acao'])
         print('Estado:')
         print(rodada['estado'])
+        print('Acao:', rodada['acao'])
         print('Reward:', rodada['reward'])
-        print('\n\n')
+        print('\n')
         gui.cliente(str(rodada['estado']))
 
     j.close()
