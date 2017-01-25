@@ -16,17 +16,15 @@ from keras.layers import Dense, Activation
 from .database.JogadasDB import JogadasDB
 from .database.EstadosDB import Estado
 from .simulador import Simulador
-
 from .config import *
-
-
 from .interface import gui_ia as gui
+
 
 randomizar = True
 
 
 class AI:
-    def __init__(self, player, em_treinamento=False, camadas=[82, 40, 30]):
+    def __init__(self, player, em_treinamento=False, camadas=[82, 40, 30], **kwargs):
 
         # inicializa a AI:
 
@@ -46,10 +44,13 @@ class AI:
 
         super(AI, self).__init__()
         self.player = player    # 0 ou 1 ~~ para indicar quem voce eh
-        self.em_treinamento = em_treinamento  # boolean
+        # self.em_treinamento = em_treinamento  # boolean
 
         # Rede Neural
-        nome_arq = 'model{}.h5'.format(self.player)
+        if 'model' in kwargs:
+            nome_arq = kwargs['model']
+        else:
+            nome_arq = 'model%d.h5'%player
 
         if os.path.isfile(nome_arq) and not randomizar:
             self.Q = keras.models.load_model(nome_arq)
@@ -67,8 +68,8 @@ class AI:
 
         if self.player == 0:
             self.jogosDB = JogadasDB()
-            if not self.em_treinamento:
-                self.jogosDB.addJogo()
+            # if not self.em_treinamento:
+                # self.jogosDB.addJogo()
 
         self.simulador = Simulador()
 
@@ -76,7 +77,6 @@ class AI:
         self.estadoLinha = None
 
     def set_turn(self, msg):
-
         # recebe um turno no protocolo oficial de texto
         # mostra o turno numa gui
         # atualiza estado
@@ -102,7 +102,6 @@ class AI:
             turno, samurais, tabuleiro, MAX_BUDGET, self.player)
 
     def get_comandos(self):
-
         #inicializa as variaveis a serem usadas
         listaAcao = []
         acao = -1
@@ -168,7 +167,6 @@ class AI:
         return ' '.join(listaAcao)
 
     def reward(self, s, a, sL):
-
         #depende da acao  TODO
         rAcao = -0.1    # (1) reward Acao
         #rAcaoInv = -5   # (2) reward Acao Invalida
