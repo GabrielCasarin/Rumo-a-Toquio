@@ -150,7 +150,7 @@ class AI:
                 #com exceção do loop da primeira rodada, deve-se armazenar todos os rewards
                 #hora de armazenar reward
                 if self.armazenar_dados:
-                    r = self.reward(s,self.jogosDB.ultima_acao(),sLinha)
+                    r = self.reward(s, self.jogosDB.ultima_acao(), sLinha)
                     self.jogosDB.addReward(r)
                         
             s = sLinha.copy()
@@ -161,17 +161,17 @@ class AI:
                 i = np.argmax(vectQ)
                 sam = i // 10
                 listaAcao.append(str(sam))
+                acao = i % 10
             else:
                 vectQ = vectQ[10 * sam:10 * sam + 10]
-                i = np.argmax(vectQ)
-            acao = i % 10
+                acao = np.argmax(vectQ)
             listaAcao.append(str(acao))
 
             #toda acao decidida deve ser armazenada
             #logo:
             #hora de armazenar acao
             if self.armazenar_dados:
-                self.jogosDB.addAcao(i)
+                self.jogosDB.addAcao(10*sam+acao)
 
 
             #s, acao -> sSim
@@ -190,20 +190,21 @@ class AI:
         #depende da acao
         rAcao = -0.1    # (1) reward Acao
         rAcaoInv = -5   # (2) reward Acao Invalida
+        rAcao0 = +0.8   # (2 tmp) reward Acao 0
 
         #depende do estado
         rEuCqN  = +1    # (3) reward Eu         Conquistar  Neutro
         rEuCqI  = +2    # (4) reward Eu         Conquistar  Inimigo
         rICqN   = -1    # (5) reward Inimigo    Conquistar  Neutro
         rICqEu  = -2    # (6) reward Inimigo    Conquistar  Eu
-        rTII    = +3    # (7) reward turnos     Inimigo     Injuried
-        rTEuI   = -3    # (8) reward turnos     Eu          Injuried
+        rTII    = +30   # (7) reward turnos     Inimigo     Injuried
+        rTEuI   = -30   # (8) reward turnos     Eu          Injuried
 
         
         reward = rAcao #(1)
 
-        if not(a%10 == 10): # (2)
-            reward += rAcaoInv
+        if (a%10 == 10): # (2 tmp)
+            reward += rAcao0
         
         for x in range(SIZE):
             for y in range(SIZE):
@@ -217,9 +218,11 @@ class AI:
                     reward += rICqEu
 
         for sam in range(0,3):
-            reward += rTII*sL.samurais[sam][4]  #(7)
+            if sL.samurais[sam][4]>16:
+                reward += rTII  #(7)
         for sam in range(3,6):
-            reward += rTEuI*sL.samurais[sam][4] #(8)
+            if sL.samurais[sam][4]>16:
+                reward += rTEuI #(8)
 
         return reward
 

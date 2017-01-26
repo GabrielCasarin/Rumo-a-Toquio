@@ -1,12 +1,12 @@
 import numpy as np
 from .config import *
 
-def distancia(x1,x2,y1,y2):
-    d = abs(x1-x2)+abs(y1-y2)
+def distancia(x1, x2, y1, y2):
+    d = abs(x1 - x2) + abs(y1 - y2)
     return d
 
 
-def imax (npVect, budget, i):
+def imax(npVect, budget, i):
 	# Recebe vetor Q(s) (tamanho (1,30), budget(s) e 
 	# Retorna max(a) de Q(s,a) considerando apenas os Q possiveis
 

@@ -79,5 +79,5 @@ def main(num_jogos, numPartidas=1, graphical=False):
 
 if __name__ == '__main__':
     argumento = int(sys.argv[1])
-    main(argumento)
+    main(argumento, graphical=True)
 

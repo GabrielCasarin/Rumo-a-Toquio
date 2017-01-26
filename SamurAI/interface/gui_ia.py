@@ -208,4 +208,5 @@ def cliente(turn_info):
 
 
     pygame.display.update()
-    pygame.time.delay(1000)
+    pygame.time.delay(1500)
+    # input()

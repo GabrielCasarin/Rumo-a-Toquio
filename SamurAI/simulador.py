@@ -53,7 +53,8 @@ class Simulador:
 
         if jogadaValida:
                 jogadaValida, custo, msg = samurai.action(acao, self.__estado.budget)
-        else:
+        
+        if not jogadaValida:
             custo = 100     # deixar isso elegante depois
         self.estado.budget -= custo
         #print('custo:', custo, ' budget:', self.estado.budget)
