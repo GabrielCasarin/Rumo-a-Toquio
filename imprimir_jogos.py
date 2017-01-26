@@ -6,8 +6,8 @@ from SamurAI.interface import gui_ia as gui
 
 def imprimir_jogo(num_match):
     j = JogadasDB()
-    for i in range(len(j.jogos[num_match])):
-        rodada = j.jogos[num_match][i]
+    for i in range(len(j.historico_jogos[num_match])):
+        rodada = j.historico_jogos[num_match][i]
         print('Rodada', i)
         print('Estado:')
         print(rodada['estado'])

@@ -186,20 +186,19 @@ class Samurai(pygame.sprite.Sprite):
             hRect = hImg.get_rect(center=(centerStat[0]+11,centerStat[1]-11))
             SCREEN.blit(hImg,hRect)
 
+b=Board(7)
+samurais = [Samurai(i) for i in range(6)]
+
 def cliente(turn_info):
 
     separado = turn_info.split('\n')
 
     turno_separado = separado[0] #pegando apenas a parte do tabuleiro da string status
     samurais_separados = separado[1:7] #pegando apenas a parte do tabuleiro da string status
-    tabuleiro_separado = separado[7:14] #pegando apenas a parte do tabuleiro da string status
+    tabuleiro_separado = separado[7:] #pegando apenas a parte do tabuleiro da string status
 
-    b=Board(7)
     b.setBoard(tabuleiro_separado)
     b.draw(SCREEN)
-
-
-    samurais = [Samurai(i) for i in range(6)]
 
 
     for i in range (6):
@@ -207,6 +206,6 @@ def cliente(turn_info):
         samurais[i].update(b, dados_samurai[0], dados_samurai[1], 
             dados_samurai[2], dados_samurai[3], dados_samurai[4])
 
-    pygame.display.update()
 
-    pygame.time.delay(0)
+    pygame.display.update()
+    pygame.time.delay(1000)

@@ -30,10 +30,10 @@ class Simulador:
             self.game.p1.samurais[i].hideStat = self.__estado.samurais[i][3]
             self.game.p1.samurais[i].treat = self.__estado.samurais[i][4]
         for i in range(3, 6):
-            self.game.p2.samurais[3 - i].pos[:] = self.__estado.samurais[i][:2]
-            self.game.p2.samurais[3 - i].orderStat = self.__estado.samurais[i][2]
-            self.game.p2.samurais[3 - i].hideStat = self.__estado.samurais[i][3]
-            self.game.p2.samurais[3 - i].treat = self.__estado.samurais[i][4]
+            self.game.p2.samurais[i - 3].pos[:] = self.__estado.samurais[i][:2]
+            self.game.p2.samurais[i - 3].orderStat = self.__estado.samurais[i][2]
+            self.game.p2.samurais[i - 3].hideStat = self.__estado.samurais[i][3]
+            self.game.p2.samurais[i - 3].treat = self.__estado.samurais[i][4]
 
     def atuar(self, sam_id, acao):
 
