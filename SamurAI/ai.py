@@ -22,8 +22,6 @@ from .interface import gui_ia as gui
 
 class AI:
     def __init__(self, em_treinamento=False, camadas=[82, 40, 30], **kwargs):
-    #def __init__(self, armazenar_dados, em_treinamento=False, camadas=[82, 40, 30], **kwargs):
-
         # inicializa a AI:
 
         # possui os atributos:
@@ -53,7 +51,7 @@ class AI:
         else:
             nome_arq = 'newRandom.h5'
 
-        DIR = './Samurai/database/IAs/'
+        DIR = os.path.join('.', 'SamurAI', 'database', 'IAs')
 
         if nome_arq == 'randomIA.h5':
             numModels = len([name for name in os.listdir(DIR) if (
@@ -86,8 +84,7 @@ class AI:
             self.Q.compile(loss='mean_squared_error', optimizer='SGD')
 
             # SALVANDO O MODELO COM NOME DEFINIDO
-            self.Q.save(DIR+nome_arq)
-
+            self.Q.save(os.path.join(DIR, nome_arq))
 
         self.epsilon = 0.2
 
@@ -270,8 +267,3 @@ class AI:
         self.Q.train_on_batch(inputs, targets)
 
         self.jogosDB.close()
-
-
-# if __name__ == '__main__':
-#     a = AI(armazenar_dados=True, em_treinamento=True)
-#     a.treinar()
