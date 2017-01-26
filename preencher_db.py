@@ -74,6 +74,7 @@ def main(num_jogos, numPartidas=1, graphical=False):
         IA_ENEMY.set_scores(score0, score1)
 
     print('{}s em {}jogos'.format(time.time()-t,num_jogos))
+    KARDAMEL.jogosDB.close()
 
 
 if __name__ == '__main__':
