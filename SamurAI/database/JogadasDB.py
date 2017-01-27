@@ -25,13 +25,10 @@ class JogadasDB:
         # Todos os dados se referem a um unico jogador
         # 'historico_jogos' possui todas as partidas
         # 'partida' possui todas as rodadas
-        # 'rodada' é um dicionário que possui (estado, acao, reward) de um unico jogador
+        # 'partida[self.numRodada]' é um dicionário da ultima jogada que possui (estado, acao, reward) de um unico jogador
 
         # id se refere ao numero da partida no historico_jogos
-        # numRodada se refere ao numedo da rodada da partida
-
-        # rodadaAtual é a ultima rodada carregada
-        # rodadaAnterior é a penultimo rodada carregada
+        # numRodada se refere ao numedo da partida[self.numRodada] da partida
 
         self.storage = FS.FileStorage(os.path.join('SamurAI', 'database','tmp', arq))  # armazena os dados fisicamente no arquivo .fs
         self.db = ZODB.DB(self.storage)  # encapsula o objeto de armazenamento (storage), além de prover o comportamento do DB
@@ -52,46 +49,47 @@ class JogadasDB:
         self.id = len(self.historico_jogos)
         self.historico_jogos[self.id] = IOBTree()
         self.partida = self.historico_jogos[self.id]
+        self.numRodada = 0
 
         self.JogoAberto = True
 
     def addState(self, state):
-        # cria uma nova linha e colocar estado nela
+        # cria uma nova linha e colocar estado nela        
+        
+        #adiciona-se 1 ao numRodada
+        self.numRodada += 1
 
-        if len(self.partida) > 0:
-            self.rodadaAnterior = self.rodadaAtual
-        numRodada = len(self.partida)
-        self.partida[numRodada] = OOBTree()
-        self.rodadaAtual = self.partida[numRodada]
+        self.partida[self.numRodada] = OOBTree()
+        self.partida[self.numRodada] = self.partida[self.numRodada]
 
         # colocar estado
-        self.rodadaAtual['estado'] = state.copy()
+        self.partida[self.numRodada]['estado'] = state.copy()
 
     def addAcao(self, acao):
         # colocar acao na linha atual
-        self.rodadaAtual['acao'] = acao
+        self.partida[self.numRodada]['acao'] = acao
 
     def addReward(self, reward):
         # colocar reward na linha anterior
-        self.rodadaAnterior['reward'] = reward
+        self.partida[self.numRodada-1]['reward'] = reward
 
     def addRewardScore(self, reward):
         # colocar reward na linha atual
-        self.rodadaAtual['reward'] = reward
+        self.partida[self.numRodada]['reward'] = reward
         self.JogoAberto = False
         transaction.commit()
 
     def ultima_acao(self):
-        return self.rodadaAnterior['acao']
+        return self.partida[self.numRodada-1]['acao']
 
     def ultimo_estado(self):
         if not self.JogoAberto:
             self.addJogo()
 
-        if len(self.partida) == 0:
+        if self.numRodada == 0:
             return None
         else:
-            return self.rodadaAnterior['estado']
+            return self.partida[self.numRodada - 1]['estado']
 
     def close(self):
         self.conn.close()
