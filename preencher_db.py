@@ -23,14 +23,14 @@ def main(num_jogos, numPartidas=1, graphical=False):
 
     for i in range (num_jogos):
         #print("Jogo: {}".format(i))
-        
+
         score0 = 0
         score1 = 0
 
         for partida in range(numPartidas):
             #print("Partida: {}".format(partida))
             # manda o DB acrescentar um jogo aos seus registros
-            #KARDAMEL.jogosDB.addJogo()
+            KARDAMEL.jogosDB.addJogo()
 
             game.__init__()
 
@@ -80,4 +80,3 @@ def main(num_jogos, numPartidas=1, graphical=False):
 if __name__ == '__main__':
     argumento = int(sys.argv[1])
     main(argumento, graphical=True)
-

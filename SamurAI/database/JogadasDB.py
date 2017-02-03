@@ -54,20 +54,18 @@ class JogadasDB:
         self.JogoAberto = True
 
     def addState(self, state):
-        # cria uma nova linha e colocar estado nela        
-        
-        #adiciona-se 1 ao numRodada
-        self.numRodada += 1
-
+        # cria uma nova linha e colocar estado nela
         self.partida[self.numRodada] = OOBTree()
-        self.partida[self.numRodada] = self.partida[self.numRodada]
-
         # colocar estado
         self.partida[self.numRodada]['estado'] = state.copy()
+        # print('    rodada', self.numRodada, ': adicionado', state.to_hash()[:8])
 
     def addAcao(self, acao):
         # colocar acao na linha atual
         self.partida[self.numRodada]['acao'] = acao
+        # print('             : acao', acao)
+        #adiciona-se 1 ao numRodada
+        self.numRodada += 1
 
     def addReward(self, reward):
         # colocar reward na linha anterior
@@ -75,7 +73,7 @@ class JogadasDB:
 
     def addRewardScore(self, reward):
         # colocar reward na linha atual
-        self.partida[self.numRodada]['reward'] = reward
+        self.partida[self.numRodada - 1]['reward'] = reward
         self.JogoAberto = False
         transaction.commit()
 

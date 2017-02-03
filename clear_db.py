@@ -3,7 +3,7 @@ import os
 DIR = 'SamurAI/database/tmp/'
 def main():
 	#deve apagar todos os arquivos em Jogos_db
-	y = input('Quer mesmo apagar todos os arquivos? (y)')
+	y = input('Quer mesmo apagar todos os arquivos? (y) ')
 	if y == 'y':
 		os.remove(DIR + 'historico_jogos.fs')
 		os.remove(DIR + 'historico_jogos.fs.index')

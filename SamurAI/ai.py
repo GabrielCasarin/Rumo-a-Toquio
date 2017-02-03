@@ -18,7 +18,7 @@ from .database.JogadasDB import JogadasDB
 from .database.EstadosDB import Estado
 from .simulador import Simulador
 from .config import *
-from .interface import gui_ia as gui
+# from .interface import gui_ia as gui
 
 class AI:
     def __init__(self, em_treinamento=False, camadas=[82, 40, 30], **kwargs):
@@ -44,7 +44,7 @@ class AI:
             self.armazenar_dados = kwargs['armazenar_dados']
         else:
             self.armazenar_dados = False
-        
+
         # Rede Neural
         if 'model' in kwargs:
             nome_arq = kwargs['model']+'.h5'
@@ -57,9 +57,9 @@ class AI:
             numModels = len([name for name in os.listdir(DIR) if (
                 os.path.isfile(os.path.join(DIR, name)) and 'model' in name)])
             if numModels > 0:
-                nome_arq = 'model_' + str(random.randrange(numModels))
+                nome_arq = 'model_' + str(random.randrange(numModels)) + '.h5'
             else:
-                nome_arq = 'model_0'
+                nome_arq = 'model_0.h5'
 
         if nome_arq == 'newRandom.h5':
             #CRIANDO UMA REDE NOVA QUE NAO SERÁ SALVA:
@@ -73,7 +73,7 @@ class AI:
 
         elif os.path.isfile(nome_arq):
             self.Q = keras.models.load_model(DIR + nome_arq)
-            
+
         else:
             #CRIANDO UMA REDE NOVA:
             self.Q = Sequential()
@@ -103,8 +103,8 @@ class AI:
         # mostra o turno numa gui
         # atualiza estado
 
-        if graphical:
-            gui.cliente(msg)
+        # if graphical:
+        #     gui.cliente(msg)
 
         msg = msg.split('\n')
 
@@ -123,66 +123,78 @@ class AI:
 
         player = turno%2
 
-        self.estado = Estado(
-            turno, samurais, tabuleiro, MAX_BUDGET, player)
+        self.estado = Estado(turno, samurais, tabuleiro, MAX_BUDGET, player)
 
     def get_comandos(self):
+        # if self.armazenar_dados:
+        #     print('Truno', self.estado.turno)
         #inicializa as variaveis a serem usadas
         listaAcao = []
         acao = -1
         sam = -1
 
-        s = None
+        sAntes = None
         if self.armazenar_dados:
-            s = self.jogosDB.ultimo_estado()
-        sLinha = self.estado
+            sAntes = self.jogosDB.ultimo_estado()
+        sAgora = self.estado
 
-        while acao != 0 and sLinha.budget >= 0:
-
+        while acao != 0 and sAgora.budget >= 0:
             #se está no loop, é porque está em um estado jogável
             #logo:
             #hora de armazenar estado
             if self.armazenar_dados:
-                self.jogosDB.addState(sLinha)
+                self.jogosDB.addState(sAgora)
 
-            #s, acao, s' -> R
-            if s != None:
-                #com exceção do loop da primeira rodada, deve-se armazenar todos os rewards
-                #hora de armazenar reward
-                if self.armazenar_dados:
-                    r = self.reward(s, self.jogosDB.ultima_acao(), sLinha)
-                    self.jogosDB.addReward(r)
-                        
-            s = sLinha.copy()
+                #s, acao, s' -> R
+                if sAntes != None:
+                    #com exceção do loop da primeira rodada, deve-se armazenar todos os rewards
+                    #hora de armazenar reward
+                    if self.armazenar_dados:
+                        r = self.reward(sAntes, self.jogosDB.ultima_acao(), sAgora)
+                        self.jogosDB.addReward(r)
+
+            sAntes = sAgora.copy()
             #s -> acao
-            
-            vectQ = self.Q.predict(self.estado.to_vect())[0]
-            if not listaAcao:
-                i = np.argmax(vectQ)
-                sam = i // 10
-                listaAcao.append(str(sam))
-                acao = i % 10
+
+            e = np.random.uniform()
+
+            if e < self.epsilon:
+                if not listaAcao:
+                    i = np.random.randint(30)
+                    sam = i // 10
+                    listaAcao.append(str(sam))
+                    acao = i % 10
+                else:
+                    acao = np.random.randint(10*sam, 10*sam + 10)
             else:
-                vectQ = vectQ[10 * sam:10 * sam + 10]
-                acao = np.argmax(vectQ)
+                vectQ = self.Q.predict(self.estado.to_vect())[0]
+                if not listaAcao:
+                    i = np.argmax(vectQ)
+                    sam = i // 10
+                    listaAcao.append(str(sam))
+                    acao = i % 10
+                else:
+                    vectQ = vectQ[10 * sam:10 * sam + 10]
+                    acao = np.argmax(vectQ)
             listaAcao.append(str(acao))
 
             #toda acao decidida deve ser armazenada
             #logo:
             #hora de armazenar acao
             if self.armazenar_dados:
-                self.jogosDB.addAcao(10*sam+acao)
+                self.jogosDB.addAcao(10*sam + acao)
 
 
             #s, acao -> sSim
-
-            self.simulador.estado = s.copy()
-            self.simulador.atuar(sam,acao)
+            self.simulador.estado = sAgora.copy()
+            self.simulador.atuar(sam, acao)
             sSim = self.simulador.estado
 
-            sLinha = sSim
+            sAgora = sSim
 
         #print(listaAcao)
+        # if self.armazenar_dados:
+        #     print()
 
         return ' '.join(listaAcao)
 
@@ -200,12 +212,12 @@ class AI:
         rTII    = +30   # (7) reward turnos     Inimigo     Injuried
         rTEuI   = -30   # (8) reward turnos     Eu          Injuried
 
-        
+
         reward = rAcao #(1)
 
         if (a%10 == 10): # (2 tmp)
             reward += rAcao0
-        
+
         for x in range(SIZE):
             for y in range(SIZE):
                 if s.tabuleiro[y][x] in [8] and sL.tabuleiro[y][x] in [0,1,2]: #(3)
@@ -229,44 +241,3 @@ class AI:
     def set_scores(self, scoreEu, scoreInim):
         if self.armazenar_dados:
             self.jogosDB.addRewardScore(10*(scoreEu - scoreInim))
-
-
-    def treinar(self):
-        batch_size = 16
-        gamma = 1
-
-
-        indices_jogos = np.random.randint(len(self.jogosDB.jogos), size=batch_size)
-        print(indices_jogos)
-        print()
-                
-        inputs = np.zeros((batch_size, self.Q.input_shape[1]))
-        targets = np.zeros((batch_size, self.Q.output_shape[1]))
-
-        for i in range(batch_size):
-            iJogo = int(indices_jogos[i])
-            iJogada = np.random.randint(1, len(self.jogosDB.jogos[iJogo]))
-            # print('iJogo', iJogo)
-            # print('iJogada', iJogada)
-            # print()
-
-            s = self.jogosDB.jogos[iJogo][iJogada - 1]['estado']
-            s_next = self.jogosDB.jogos[iJogo][iJogada]['estado']
-            acao = self.jogosDB.jogos[iJogo][iJogada]['acao']
-            r = self.jogosDB.jogos[iJogo][iJogada]['reward']
-
-            budget = s.budget
-            s = s.to_vect()
-            inputs[i] = s
-            targets[i] = self.Q.predict(s)
-            # print(targets)
-
-            if s_next is not None:
-                targets[i][acao] = r + gamma*imax(self.Q.predict(s_next.to_vect()), budget)
-            else:
-                targets[i][acao] = r
-
-        # treina o batch
-        self.Q.train_on_batch(inputs, targets)
-
-        self.jogosDB.close()
