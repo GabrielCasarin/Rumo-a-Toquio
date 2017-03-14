@@ -18,7 +18,7 @@ from .database.JogadasDB import JogadasDB
 from .database.EstadosDB import Estado
 from .simulador import Simulador
 from .config import *
-# from .interface import gui_ia as gui
+
 
 class AI:
     def __init__(self, em_treinamento=False, camadas=[82, 40, 30], **kwargs):
@@ -57,23 +57,23 @@ class AI:
             numModels = len([name for name in os.listdir(DIR) if (
                 os.path.isfile(os.path.join(DIR, name)) and 'model' in name)])
             if numModels > 0:
-                nome_arq = 'model_' + str(random.randrange(numModels)) + '.h5'
+                nome_arq = 'model_' + str(np.random.randint(numModels)) + '.h5'
             else:
                 nome_arq = 'model_0.h5'
+            print('Oponente: IA', nome_arq)
 
-        if nome_arq == 'newRandom.h5':
-            #CRIANDO UMA REDE NOVA QUE NAO SERÁ SALVA:
-            self.Q = Sequential()
-            self.Q.add(Dense(output_dim=camadas[1], input_dim=camadas[0]))
-            for i in range(1, len(camadas) - 1):
-                self.Q.add(Activation("sigmoid"))
-                self.Q.add(Dense(output_dim=camadas[i + 1]))
-            self.Q.compile(loss='mean_squared_error', optimizer='SGD')
+        # if nome_arq == 'newRandom.h5':
+        #     #CRIANDO UMA REDE NOVA QUE NAO SERÁ SALVA:
+        #     self.Q = Sequential()
+        #     self.Q.add(Dense(output_dim=camadas[1], input_dim=camadas[0]))
+        #     for i in range(1, len(camadas) - 1):
+        #         self.Q.add(Activation("sigmoid"))
+        #         self.Q.add(Dense(output_dim=camadas[i + 1]))
+        #     self.Q.compile(loss='mean_squared_error', optimizer='SGD')
 
 
-        elif os.path.isfile(nome_arq):
-            self.Q = keras.models.load_model(DIR + nome_arq)
-
+        if os.path.isfile(os.path.join(DIR, nome_arq)) and nome_arq != 'newRandom.h5':
+            self.Q = keras.models.load_model(os.path.join(DIR, nome_arq))
         else:
             #CRIANDO UMA REDE NOVA:
             self.Q = Sequential()
@@ -86,12 +86,13 @@ class AI:
             # SALVANDO O MODELO COM NOME DEFINIDO
             self.Q.save(os.path.join(DIR, nome_arq))
 
-        self.epsilon = 0.2
+        if kwargs['model'] == 'KARDAMEL':
+            self.epsilon = 0.2
+        else:
+            self.epsilon = 0
 
         if self.armazenar_dados:
             self.jogosDB = JogadasDB()
-            # if not self.em_treinamento:
-                # self.jogosDB.addJogo()
 
         self.simulador = Simulador()
 
@@ -125,9 +126,7 @@ class AI:
 
         self.estado = Estado(turno, samurais, tabuleiro, MAX_BUDGET, player)
 
-    def get_comandos(self):
-        # if self.armazenar_dados:
-        #     print('Truno', self.estado.turno)
+    def get_comandos(self):\
         #inicializa as variaveis a serem usadas
         listaAcao = []
         acao = -1
@@ -146,7 +145,7 @@ class AI:
                 self.jogosDB.addState(sAgora)
 
                 #s, acao, s' -> R
-                if sAntes != None:
+                if sAntes is not None:
                     #com exceção do loop da primeira rodada, deve-se armazenar todos os rewards
                     #hora de armazenar reward
                     if self.armazenar_dados:
@@ -156,26 +155,27 @@ class AI:
             sAntes = sAgora.copy()
             #s -> acao
 
+            vectQ = self.Q.predict(self.estado.to_vect())[0]
             e = np.random.uniform()
+            # e = 0
 
-            if e < self.epsilon:
-                if not listaAcao:
+            if not listaAcao:
+                if e < self.epsilon:
                     i = np.random.randint(30)
-                    sam = i // 10
-                    listaAcao.append(str(sam))
-                    acao = i % 10
                 else:
-                    acao = np.random.randint(10*sam, 10*sam + 10)
-            else:
-                vectQ = self.Q.predict(self.estado.to_vect())[0]
-                if not listaAcao:
                     i = np.argmax(vectQ)
-                    sam = i // 10
-                    listaAcao.append(str(sam))
-                    acao = i % 10
+                sam = i // 10
+                listaAcao.append(str(sam))
+                acao = i % 10
+            else:
+                if e < self.epsilon:
+                    acao = np.random.randint(10)
                 else:
-                    vectQ = vectQ[10 * sam:10 * sam + 10]
+                    low_action_limit = 10*sam
+                    high_action_limit = low_action_limit + 10
+                    vectQ = vectQ[low_action_limit:high_action_limit]
                     acao = np.argmax(vectQ)
+
             listaAcao.append(str(acao))
 
             #toda acao decidida deve ser armazenada
@@ -200,7 +200,7 @@ class AI:
 
     def reward(self, s, a, sL):
         #depende da acao
-        rAcao = -0.1    # (1) reward Acao
+        rAcao = 0       # (1) reward Acao
         rAcaoInv = -5   # (2) reward Acao Invalida
         rAcao0 = +0.8   # (2 tmp) reward Acao 0
 
@@ -236,8 +236,8 @@ class AI:
             if sL.samurais[sam][4]>16:
                 reward += rTEuI #(8)
 
-        return reward
+        return 0
 
     def set_scores(self, scoreEu, scoreInim):
         if self.armazenar_dados:
-            self.jogosDB.addRewardScore(10*(scoreEu - scoreInim))
+            self.jogosDB.addRewardScore(scoreEu)
