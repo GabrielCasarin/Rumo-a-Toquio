@@ -5,71 +5,51 @@
 ##      Todos podem usar este codigo livremente                 ##
 ##                                                              ##
 ##################################################################
-
-import os
-
 import hashlib
-
 import numpy as np
-
 from BTrees.OOBTree import OOBTree
 from BTrees.IOBTree import IOBTree
-import ZODB
-import ZODB.FileStorage as FS
 import transaction
 import persistent
 
 
-class EstadosDB:
-    def __init__(self, arq='estados.fs'):
-        self.storage = FS.FileStorage(os.path.join('database','tmp', arq))  # armazena os dados fisicamente no arquivo .fs
-        self.db = ZODB.DB(self.storage)  # encapsula o objeto de armazenamento (storage), além de prover o comportamento do DB
-        self.conn = self.db.open()  # começa uma conexão com o DB a fim de podermos realizar transações
-        self.dbroot = self.conn.root()  # o objeto root funciona como um namespace para todos os outros contêineres do DB
-        if 'estados' not in self.dbroot.keys():
-            self.dbroot['estados'] = OOBTree()
-        self.estados = self.dbroot['estados']
+class EstadosManager:
+    def __init__(self, estados):
+        self.estados = estados
 
-    def get_estado(self, turno, samurais, tabuleiro, budget, player):
-        # calcula o hash
-        string = str(turno)
-        for i in range(len(samurais)):
-            for j in range(5):
-                string += str(samurais[i][j])
-        for i in range(len(tabuleiro)):
-            for j in range(len(tabuleiro)):
-                string += str(tabuleiro[i][j])
-        string += str(budget)
-        string += str(player)
-
-        h = hashlib.sha256(string.encode()).hexdigest()
-
-        if h in self.estados.keys():
-            return self.estados[h]
+    def get_or_create(self, **kwargs):
+        if 's' in kwargs:
+            new_state = kwargs['s']
         else:
-            novo_estado = Estado(turno, samurais, tabuleiro, budget, player)
-            self.estados[h] = novo_estado
-            transaction.commit()
-            return novo_estado
+            turno = kwargs['turno']
+            samurais = kwargs['samurais']
+            tabuleiro = kwargs['tabuleiro']
+            budget = kwargs['budget']
+            player = kwargs['player']
+            new_state = Estado(turno, samurais, tabuleiro, budget, player)
+    
+        # calcula o hash
+        h = new_state.to_hash()
 
-    def encerrar(self):
-        self.conn.close()
-        self.db.close()
-        self.storage.close()
+        # verifica se o estado já se encontra no DB
+        if h in self.estados.keys():
+            s = self.estados[h]
+        else:
+            self.estados[h] = new_state
+            s = new_state
+        return s
 
 
 class Estado(persistent.Persistent):
-    def __init__(self, turno, samurais, tabuleiro, budget, player):
-        self.turno = turno          # int 0 95
+    objects = None # manager
+    def __init__(self, turno, samurais, tabuleiro, budget, player, qtd_visitas=0):
+        self.turno = int(turno)     # int 0 95
         self.samurais = samurais    # int de lista de lista (6x5)
         self.tabuleiro = tabuleiro  # int de lista de lista (size x size)
-        self.budget = budget        # int 0 7
-        self.player = player        # int 0 1
-        self.qtd_visitas = 0        # para futuras implementacoes
+        self.budget = int(budget)   # int 0 7
+        self.player = int(player)       # int 0 1
+        self.qtd_visitas = qtd_visitas  # para futuras implementacoes
 
-    # GETTERS E SETTERS
-
-    # Samurais
     @property
     def samurais(self):
         return self.__samurais
@@ -81,7 +61,6 @@ class Estado(persistent.Persistent):
             self.__samurais.append(list(el))
         self._p_changed = True
 
-    # Tabuleiro
     @property
     def tabuleiro(self):
         return self.__tabuleiro
@@ -93,7 +72,10 @@ class Estado(persistent.Persistent):
             self.__tabuleiro.append(list(el))
         self._p_changed = True
 
-    # FIM GETTERS E SETTERS
+    def save(self):
+        s = Estado.objects.get_or_create(s=self)
+        s.qtd_visitas = self.qtd_visitas
+        transaction.commit()
 
     def to_hash(self):
         string = str(self.turno)
@@ -105,7 +87,6 @@ class Estado(persistent.Persistent):
                 string += str(self.tabuleiro[i][j])
         string += str(self.budget)
         string += str(self.player)
-
         return hashlib.sha256(string.encode()).hexdigest()
 
     def to_vect(self):
@@ -121,28 +102,22 @@ class Estado(persistent.Persistent):
             for j in range(5):
                 vect[0][k] = self.samurais[i][j]
                 k += 1
-
         for i in range(len(self.tabuleiro)):
             for j in range(len(self.tabuleiro)):
                 vect[0][k] = self.tabuleiro[i][j]
                 k += 1
-
         vect[0][k] = self.budget
         k += 1
-
         vect[0][k] = self.player
-
         return vect
 
     def copy(self):
-        novo_estado = Estado(
-            turno=self.turno,
-            samurais=self.samurais,
-            tabuleiro=self.tabuleiro,
-            budget=self.budget,
-            player=self.player
-        )
-        return novo_estado
+        new_state = Estado(turno=self.turno,
+                           samurais=self.samurais,
+                           tabuleiro=self.tabuleiro,
+                           budget=self.budget,
+                           player=self.player)
+        return new_state
 
     def __str__(self):
         #string do turno
