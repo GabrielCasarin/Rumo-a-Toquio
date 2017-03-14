@@ -13,7 +13,7 @@ from SamurAI.config import *
 from SamurAI.util import imax
 
 
-nb_epochs = 10
+nb_epochs = 50
 batch_size = 16
 gamma = 0.9
 
@@ -31,7 +31,7 @@ def main(model='KARDAMEL'):
     #salvar Q em outro lugar
     # numModels = len([name for name in os.listdir(DIR) if os.path.isfile(os.path.join(DIR, name)) and 'model' in name])
     indice = RN_Manager.proximo_indice()
-    rn_nome = 'model_{}'.format(indice)
+    rn_nome = 'model_{}.h5'.format(indice)
     Q.save(os.path.join(DIR, rn_nome))
     RN_Manager.registrar(rn_nome)
     
